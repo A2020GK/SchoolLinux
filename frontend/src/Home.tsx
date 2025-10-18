@@ -1,5 +1,6 @@
 import { useContext, useState, type FormEventHandler } from "react";
-import { StatusContext, type Status } from "./StatusContext";
+import { StatusContext } from "./StatusContext";
+import { Status } from "./types";
 import { Link } from "react-router";
 import { apiBase } from "./main";
 

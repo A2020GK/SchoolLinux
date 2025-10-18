@@ -28,6 +28,9 @@ class ConnectionManager:
         # Store teacher connection separately for quick access
         if is_teacher(client_ip):
             self.teacher_connection = websocket
+            print(f"Teacher connected from {client_ip}")
+        else:
+            print(f"Student connected from {client_ip}")
 
     def disconnect(self, websocket: WebSocket):
         for ip, ws in list(self.active_connections.items()):
@@ -36,13 +39,17 @@ class ConnectionManager:
                 # Clear teacher connection if teacher disconnected
                 if is_teacher(ip):
                     self.teacher_connection = None
+                    print(f"Teacher disconnected from {ip}")
+                else:
+                    print(f"Student disconnected from {ip}")
                 break
 
     async def send_to_ip(self, message: dict, ip: str):
         if ip in self.active_connections:
             try:
                 await self.active_connections[ip].send_json(message)
-            except:
+            except Exception as e:
+                print(f"Failed to send message to {ip}: {e}")
                 self.disconnect(self.active_connections[ip])
 
     async def send_to_teacher(self, message: dict):
@@ -50,14 +57,16 @@ class ConnectionManager:
         if self.teacher_connection:
             try:
                 await self.teacher_connection.send_json(message)
-            except:
+            except Exception as e:
+                print(f"Failed to send message to teacher: {e}")
                 self.teacher_connection = None
 
     async def broadcast(self, message: dict):
         for ip, connection in list(self.active_connections.items()):
             try:
                 await connection.send_json(message)
-            except:
+            except Exception as e:
+                print(f"Failed to broadcast message to {ip}: {e}")
                 self.disconnect(connection)
 
 manager = ConnectionManager()
@@ -134,9 +143,7 @@ async def delpc(ip: str, request: Request):
             
             # Notify the removed PC
             await manager.send_to_ip({"type": "remove"}, ip)
-            
-            # Teacher doesn't need notification since they initiated the action
-            # The frontend will update based on the API response
+            await manager.send_to_teacher({"type":"pc_removed", "ip":ip})
             
             return {"ok": True, "pcs": data.pcs}
     except Exception as e:
@@ -149,7 +156,12 @@ async def websocket_endpoint(websocket: WebSocket):
     await manager.connect(websocket, client_ip)
     try:
         while True:
-            # Keep connection alive
-            await websocket.receive_text()
+            # Keep connection alive and handle ping/pong
+            data = await websocket.receive_text()
+            if data == "ping":
+                await websocket.send_text("pong")
     except WebSocketDisconnect:
+        manager.disconnect(websocket)
+    except Exception as e:
+        print(f"WebSocket error for {client_ip}: {e}")
         manager.disconnect(websocket)

@@ -1,16 +1,14 @@
 import { createContext, useEffect, useState } from "react"
-import { apiAddr, apiBase } from "./main";
-import useWebSocket from "react-use-websocket";
+import { apiBase } from "./main";
+import { useWebSocketConnection } from "./useWebSocketConnection";
+import { Status, WebSocketMessage } from "./types";
 
-export interface Status {
-    isTeacher: boolean,
-    pcNumber: string | null,
-    name: string | null
-}
+// Status interface is now imported from types.ts
 
 interface StatusContextType {
     status: Status | null,
-    setStatus: (status: Status) => void
+    setStatus: (status: Status) => void,
+    isWebSocketConnected: boolean
 }
 
 export const StatusContext = createContext<StatusContextType | undefined>(undefined);
@@ -18,33 +16,24 @@ export const StatusContext = createContext<StatusContextType | undefined>(undefi
 export const StatusProvider = ({ children }: { children: React.ReactNode }) => {
     const [status, setStatus] = useState<Status | null>(null);
 
-    // Add proper WebSocket configuration
-    const { lastJsonMessage, readyState } = useWebSocket(`ws://${apiAddr}/ws`, {
-        shouldReconnect: (_closeEvent) => true,
-        reconnectAttempts: 10,
-        reconnectInterval: 3000,
+    // Handle WebSocket messages
+    const handleWebSocketMessage = (message: WebSocketMessage) => {
+        if (message.type === "remove") {
+            setStatus(null);
+        }
+    };
+
+    const { isConnected } = useWebSocketConnection({
+        onMessage: handleWebSocketMessage,
     });
 
-    // Debug WebSocket connection
-    useEffect(() => {
-        console.log('WebSocket readyState:', readyState);
-        console.log('Last JSON message:', lastJsonMessage);
-    }, [readyState, lastJsonMessage]);
-
-    useEffect(() => {
-        if (lastJsonMessage !== null) {
-            console.log('Received WebSocket message:', lastJsonMessage);
-            if (lastJsonMessage.type === "remove") {
-                setStatus(null);
-            }
-        }
-    }, [lastJsonMessage]);
-
+    // Load initial status
     useEffect(() => {
         fetch(`${apiBase}/status`)
             .then(data => data.json())
             .then(setStatus)
+            .catch(console.error);
     }, []);
 
-    return <StatusContext.Provider value={{ status, setStatus }}>{children}</StatusContext.Provider>
+    return <StatusContext.Provider value={{ status, setStatus, isWebSocketConnected: isConnected }}>{children}</StatusContext.Provider>
 }

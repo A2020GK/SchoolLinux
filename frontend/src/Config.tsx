@@ -1,19 +1,41 @@
 import { useContext, useEffect, useState } from "react"
 import { StatusContext } from "./StatusContext"
 import { apiBase } from "./main";
-import useWebSocket from "react-use-websocket";
-
-interface PCData {
-    [ip: string]: [string, string]; // [pcNumber, name]
-}
+import { useWebSocketConnection } from "./useWebSocketConnection";
+import { PCData, WebSocketMessage } from "./types";
 
 export const Config = () => {
     const { status } = useContext(StatusContext)!;
     if (!status?.isTeacher) return <p>У Вас нет прав на сие действо...</p>
     const [pcs, setPcs] = useState<PCData | null>(null);
 
-    const { lastJsonMessage } = useWebSocket(`ws://${window.location.hostname}:8000/ws`, {
-        shouldReconnect: () => true,
+    // Handle WebSocket messages for real-time updates
+    const handleWebSocketMessage = (message: WebSocketMessage) => {
+        switch (message.type) {
+            case "pc_added":
+                // Add new PC to the list
+                setPcs(prev => ({
+                    ...prev,
+                    [message.ip]: [message.pcNumber, message.name]
+                }));
+                break;
+
+            case "pc_removed":
+                // Remove PC from the list
+                setPcs(prev => {
+                    const newPcs = { ...prev };
+                    delete newPcs[message.ip];
+                    return newPcs;
+                });
+                break;
+
+            default:
+                break;
+        }
+    };
+
+    useWebSocketConnection({
+        onMessage: handleWebSocketMessage,
     });
 
     // Load initial PC list
@@ -23,35 +45,6 @@ export const Config = () => {
             .then(setPcs)
             .catch(console.error);
     }, []);
-
-    // Handle WebSocket messages for real-time updates
-    useEffect(() => {
-        if (lastJsonMessage) {
-            console.log('WebSocket message:', lastJsonMessage);
-
-            switch (lastJsonMessage.type) {
-                case "pc_added":
-                    // Add new PC to the list
-                    setPcs(prev => ({
-                        ...prev,
-                        [lastJsonMessage.ip]: [lastJsonMessage.pcNumber, lastJsonMessage.name]
-                    }));
-                    break;
-
-                case "pc_removed":
-                    // Remove PC from the list
-                    setPcs(prev => {
-                        const newPcs = { ...prev };
-                        delete newPcs[lastJsonMessage.ip];
-                        return newPcs;
-                    });
-                    break;
-
-                default:
-                    break;
-            }
-        }
-    }, [lastJsonMessage]);
 
     const delpc = (ip: string) => {
         fetch(`${apiBase}/pcs/${ip}`, {
