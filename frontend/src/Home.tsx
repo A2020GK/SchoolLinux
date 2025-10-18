@@ -11,7 +11,7 @@ export const Home = () => {
 
     const registerPc: FormEventHandler<HTMLFormElement> = e => {
         e.preventDefault();
-        fetch(`${apiBase}/regpc`, {
+        fetch(`${apiBase}/pcs/reg`, {
             method: "POST",
             headers: {
                 'Content-Type': 'application/json'

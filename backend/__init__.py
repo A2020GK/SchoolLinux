@@ -1,7 +1,3 @@
-from dotenv import load_dotenv
-from os import getenv
-load_dotenv()
-
 from .data import save, data
 from fastapi import FastAPI, Request, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
@@ -93,7 +89,7 @@ class RegPC(BaseModel):
     pcNumber: str
     name: str
 
-@app.post("/regpc")
+@app.post("/pcs/reg", tags=["pcs"])
 async def regpc(pc: RegPC, request: Request):
     client_ip = request.client.host
     
@@ -118,13 +114,13 @@ async def regpc(pc: RegPC, request: Request):
             return {"ok": False}
     return {"ok": False}
 
-@app.get("/pcs")
+@app.get("/pcs", tags=["pcs"])
 async def pcs(request: Request):
     if is_teacher(request.client.host):
         return data.pcs
     return {"error": "Unauthorized"}
 
-@app.delete("/pcs/{ip}")
+@app.delete("/pcs/{ip}", tags=["pcs"])
 async def delpc(ip: str, request: Request):
     # Only teacher can delete PCs
     if not is_teacher(request.client.host):
