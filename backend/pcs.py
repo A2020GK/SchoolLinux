@@ -1,8 +1,10 @@
-from . import app, is_teacher
-from .ws import manager
 from fastapi import Request
 from .data import data, save
 from pydantic import BaseModel
+from paramiko import SSHClient, AutoAddPolicy
+
+# Import the app and functions from __init__.py
+from . import app, is_teacher, manager
 
 class RegPC(BaseModel):
     pcNumber: str
@@ -11,30 +13,44 @@ class RegPC(BaseModel):
 @app.post("/pcs/reg", tags=["pcs"])
 async def regpc(pc: RegPC, request: Request):
     client_ip = request.client.host
-    
     # Only allow non-teacher IPs to register
     if not is_teacher(client_ip):
         try:
-            r = "-".join(map(str, map(int, pc.pcNumber.strip().split("-", 1))))
-            data.pcs[client_ip] = (r, pc.name)
-            save()
+            # Check PC via SSH
+            client = SSHClient()
+            client.set_missing_host_key_policy(AutoAddPolicy())
+            client.connect(client_ip, username="game", password="game")
             
-            # Notify teacher about new PC registration
-            await manager.send_to_teacher({
-                "type": "pc_added", 
-                "ip": client_ip, 
-                "pcNumber": r, 
-                "name": pc.name
-            })
+            # Test connection with bash version
+            stdin, stdout, stderr = client.exec_command("bash --version")
+            exit_status = stdout.channel.recv_exit_status()
             
-            return {"ok": True, "pcNumber": r}
+            if exit_status == 0:
+                r = "-".join(map(str, map(int, pc.pcNumber.strip().split("-", 1))))
+                data.pcs[client_ip] = (r, pc.name)
+                save()
+                
+                # Notify teacher about new PC registration
+                await manager.send_to_teacher({
+                    "type": "pc_added", 
+                    "ip": client_ip, 
+                    "pcNumber": r, 
+                    "name": pc.name
+                })
+                
+                return {"ok": True, "pcNumber": r}
+            else:
+                print(f"SSH command failed with exit status: {exit_status}")
+                return {"ok": False, "error": "SSH connection failed"}
         except Exception as e:
             print(f"Registration error: {e}")
             return {"ok": False}
+        finally:
+            client.close()
     return {"ok": False}
 
 @app.get("/pcs", tags=["pcs"])
-async def pcs(request: Request):
+async def get_pcs(request: Request):
     if is_teacher(request.client.host):
         return data.pcs
     return {"error": "Unauthorized"}
