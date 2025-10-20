@@ -1,5 +1,5 @@
-import { createContext, useEffect, useState } from "react"
-import { apiBase } from "./main";
+import { createContext, useEffect, useState, useCallback } from "react"
+import { apiService } from "./api";
 import { useWebSocketConnection } from "./useWebSocketConnection";
 import { Status, WebSocketMessage } from "./types";
 
@@ -17,11 +17,11 @@ export const StatusProvider = ({ children }: { children: React.ReactNode }) => {
     const [status, setStatus] = useState<Status | null>(null);
 
     // Handle WebSocket messages
-    const handleWebSocketMessage = (message: WebSocketMessage) => {
+    const handleWebSocketMessage = useCallback((message: WebSocketMessage) => {
         if (message.type === "remove") {
             setStatus(null);
         }
-    };
+    }, []);
 
     const { isConnected } = useWebSocketConnection({
         onMessage: handleWebSocketMessage,
@@ -29,8 +29,7 @@ export const StatusProvider = ({ children }: { children: React.ReactNode }) => {
 
     // Load initial status
     useEffect(() => {
-        fetch(`${apiBase}/status`)
-            .then(data => data.json())
+        apiService.getStatus()
             .then(setStatus)
             .catch(console.error);
     }, []);

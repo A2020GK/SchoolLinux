@@ -7,9 +7,6 @@ import { Home } from './Home.tsx'
 import { Config } from './Config.tsx'
 import { StatusProvider } from './StatusContext.tsx'
 
-export const apiAddr = `${location.hostname}:8000`
-export const apiBase = `http://${apiAddr}`;
-
 createRoot(document.body).render(
     <StrictMode>
         <BrowserRouter>

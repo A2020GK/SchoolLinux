@@ -1,7 +1,7 @@
 import { useEffect, useCallback, useRef } from 'react';
 import useWebSocket, { ReadyState } from 'react-use-websocket';
 import { WebSocketMessage } from './types';
-import { apiAddr } from './main';
+import { apiAddr } from './api';
 
 interface UseWebSocketConnectionOptions {
     onMessage?: (message: WebSocketMessage) => void;

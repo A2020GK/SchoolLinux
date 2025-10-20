@@ -1,6 +1,6 @@
-import { useContext, useEffect, useState } from "react"
+import { useContext, useEffect, useState, useCallback } from "react"
 import { StatusContext } from "./StatusContext"
-import { apiBase } from "./main";
+import { apiService } from "./api";
 import { useWebSocketConnection } from "./useWebSocketConnection";
 import { PCData, WebSocketMessage } from "./types";
 
@@ -10,7 +10,7 @@ export const Config = () => {
     const [pcs, setPcs] = useState<PCData | null>(null);
 
     // Handle WebSocket messages for real-time updates
-    const handleWebSocketMessage = (message: WebSocketMessage) => {
+    const handleWebSocketMessage = useCallback((message: WebSocketMessage) => {
         switch (message.type) {
             case "pc_added":
                 // Add new PC to the list
@@ -32,7 +32,7 @@ export const Config = () => {
             default:
                 break;
         }
-    };
+    }, []);
 
     useWebSocketConnection({
         onMessage: handleWebSocketMessage,
@@ -40,20 +40,16 @@ export const Config = () => {
 
     // Load initial PC list
     useEffect(() => {
-        fetch(`${apiBase}/pcs`)
-            .then(data => data.json())
+        apiService.getPCs()
             .then(setPcs)
             .catch(console.error);
     }, []);
 
     const delpc = (ip: string) => {
-        fetch(`${apiBase}/pcs/${ip}`, {
-            method: "DELETE"
-        })
-            .then(data => data.json())
+        apiService.deletePC(ip)
             .then(data => {
-                if (data.ok) {
-                    setPcs(data.pcs);
+                if (data.ok && data.data) {
+                    setPcs(data.data);
                 }
             })
             .catch(console.error);
