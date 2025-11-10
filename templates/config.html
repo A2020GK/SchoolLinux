@@ -1,0 +1,27 @@
+{% extends "layout.html" %}
+{% block head %}
+    {{ super() }}
+    <script src="/static/teacher.js" defer></script>
+{% endblock %}
+{% block title %}Компьютеры{% endblock %}
+
+{% block content %}
+
+    <h1>Управление компьютерами</h1>
+    <table width="100%" border="1">
+        <thead>
+            <tr><th>IP</th><th>Компьютер</th><th>Имя</th><th>Клады</th><th>Действо</th></tr>
+        </thead>
+        <tbody>
+            {% for ip, data in users.items() %}
+
+                <tr><td>{{ ip }}</td><td>{{ data.pc }}</td><td>{{ data.name }}</td><td>{% if "klads" in data and data.klads != None%}{{data.klads|length}}{% endif %}</td><td><button data-ip="{{ ip }}" class="kick">Изгнать</button></td></tr>
+
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <p><button id="begin" disabled>Начать игру</button></p>
+    <p class="check" style="display:block;"></p>
+
+{% endblock %}

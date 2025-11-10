@@ -1,0 +1,87 @@
+html,
+body {
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    height: 100%;
+}
+
+body {
+    background-color: black;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+header {
+    height: 40px;
+    margin: 10px;
+    background-color: whitesmoke;
+    border-radius: 20px;
+    border: 3px solid lightgreen;
+    box-shadow: 0px 0px 100px 50px rgba(0, 255, 0, 0.2);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 0 20px;
+}
+
+header h1 {
+    font-size: 1.5em;
+}
+header h1 a {
+    text-decoration: none;
+    color: black;
+}
+
+header div * {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+main {
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.content {
+    width: calc(100% / 3);
+    height: 50%;
+    border-radius: 20px;
+    box-shadow: 0 0 50px 10px green;
+    border: 1px solid white;
+    padding: 20px;
+    text-align: center;
+    font-size: x-large;
+    color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+}
+
+.button, button {
+    border: 1px solid white;
+    padding: 5px 10px;
+    color:white;
+    text-decoration: none;
+    border-radius: 10px;
+    background-color: blue;
+}
+.button:hover, button:hover {
+    background-color: darkblue;
+}
+button {
+    margin: 10px;
+    font-size: large;
+}
+input {
+    padding: 10px;
+    border-radius: 15px;
+}
+td {
+    padding: 5px 10px;
+}
+.check {
+    display: none;
+}
