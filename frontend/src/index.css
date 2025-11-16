@@ -1,0 +1,162 @@
+:root {
+    --rdg-color-scheme: dark
+}
+
+html,
+body {
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    height: 100%;
+}
+
+body {
+    background-color: black;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif
+}
+
+header {
+    height: 40px;
+    margin: 10px;
+    background-image: linear-gradient(to bottom, white, gray);
+    border-radius: 20px;
+    border: 3px solid lightgreen;
+    box-shadow: 0px 0px 100px 50px rgba(0, 255, 0, 0.2);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 0 20px;
+}
+
+header h1 {
+    font-size: 1.5em;
+}
+
+header h1 a {
+    text-decoration: none;
+    color: black;
+}
+
+header div * {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+main {
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.content {
+    width: 50%;
+    height: max-content;
+    min-height: 50%;
+    border-radius: 20px;
+    box-shadow: 0 0 50px 10px green;
+    border: 1px solid white;
+    padding: 50px;
+    text-align: center;
+    font-size: x-large;
+    color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+}
+
+.button,
+button {
+    border: 1px solid white;
+    padding: 5px 10px;
+    color: white;
+    text-decoration: none;
+    border-radius: 10px;
+    background-color: blue;
+}
+
+.button:hover,
+button:hover {
+    background-color: darkblue;
+}
+
+button {
+    margin: 10px;
+    font-size: large;
+}
+
+input {
+    padding: 10px;
+    border-radius: 15px;
+}
+
+td {
+    padding: 5px 10px;
+}
+
+@keyframes checking {
+    from {
+        color: white;
+    }
+
+    to {
+        color: yellow;
+    }
+}
+
+.checking {
+    animation: checking 1s infinite linear alternate;
+
+}
+
+.rdg {
+    min-width: 50%;
+    background-color: transparent;
+    border-radius: 15px;
+}
+
+.rdg-cell button {
+    font-size: initial;
+    padding: 0 10px;
+    width: 100%;
+    display: inline;
+    height: 100%;
+}
+
+.rdg-cell {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background-color: transparent;
+}
+
+.rdg-cell[role=columnheader] {
+    user-select: none;
+    background-image: linear-gradient(to bottom, black, black, green);
+    border-bottom: 1px solid white;
+}
+
+.rdg-cell[role=columnheader]:nth-child(1) {
+    border-radius: 15px 0 0 0;
+}
+
+.rdg-cell[role=columnheader]:nth-child(5) {
+    border-radius: 0 15px 0 0;
+}
+
+footer {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    color: white;
+    margin: 10px;
+    font-size: 2em;
+}
+
+footer a {
+    text-decoration: none;
+    color: inherit;
+}

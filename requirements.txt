@@ -1,1 +1,4 @@
-flask==3.1.2
+fastapi[standard]
+python-socketio
+paramiko
+python-dotenv

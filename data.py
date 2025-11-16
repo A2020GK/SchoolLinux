@@ -1,18 +1,25 @@
-import pickle
 from dataclasses import dataclass
+import pickle
+
+@dataclass
+class Student:
+    pc: str
+    name: str
+    klads: set
 
 @dataclass
 class Data:
-    status:str
-    users:dict
+    students: dict
+    status: str # reg | init | run | done
     
-
 def save():
     with open("data.pkl", "wb") as dbf:
         pickle.dump(data, dbf)
+        
+
 try:
     with open("data.pkl", "rb") as dbf:
         data: Data = pickle.load(dbf)
 except Exception as e:
-    data: Data = Data(None, {})
+    data: Data = Data({}, "reg")
     save()
