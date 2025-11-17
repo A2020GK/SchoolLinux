@@ -41,3 +41,4 @@ async def disconnect(sid, *args):
 
 from .info import *
 from .students import *
+from .game import *

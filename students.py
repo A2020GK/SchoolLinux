@@ -5,7 +5,7 @@ from pydantic import BaseModel
 from fastapi import Request
 from .ssh import mkclient
 
-student_format = lambda s: {"pc":s.pc, "klads":5 - len(s.klads), "name":s.name}
+student_format = lambda s: {"pc":s.pc, "klads":5 - len(s.klads) if data.status=="run" else 0, "name":s.name}
 
 def students_format():
     r = {}
@@ -33,6 +33,9 @@ async def reg(student: StudentIn, request: Request):
     if is_teacher(ip) or ip in data.students:
         return
     
+    if data.status == "run":
+        return "rejected"
+    
     try:
         client = mkclient(ip)
         client.close()
@@ -55,7 +58,7 @@ async def me(request:Request):
 async def kick(ip:str, request:Request):
     if not is_teacher(request.client.host) or ip not in data.students:
         return None
-    await send_to_ip(ip, "kick")
+    await send_to_ip(ip, "update", None)
     del data.students[ip]
     save()
     return students_format()

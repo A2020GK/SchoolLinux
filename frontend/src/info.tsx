@@ -1,14 +1,8 @@
 import { createContext, useEffect, useState, type Dispatch, type ReactNode, type SetStateAction } from "react";
 import { api, socket } from "./api";
 
-export type Status = "reg" | "init" | "run" | "done";
+export type Status = "reg" | "init" | "run";
 
-export const statusMap = {
-    reg:"Ожидание регистрации всех комьютеров...",
-    init:"Инициализация игры...",
-    run:"Игра идёт",
-    done:"Игра завершена"
-}
 
 export interface Info {
     isTeacher: boolean,

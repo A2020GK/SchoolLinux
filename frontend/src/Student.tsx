@@ -1,8 +1,7 @@
-import { useContext, useEffect, useState } from "react"
-import { InfoContext } from "./info"
+import { useEffect, useState } from "react"
 import { StudentLoginForm } from "./StudentLoginForm";
 import { api, socket } from "./api";
-import { StudentInfo } from "./StudentInfo";
+import { StudentContent } from "./StudentContent";
 
 export interface Me {
     pc: string,
@@ -11,15 +10,13 @@ export interface Me {
 }
 
 export const Student = () => {
-    const { status } = useContext(InfoContext);
-
     const [me, setMe] = useState<Me | null | "checking">(null);
     useEffect(() => { (async () => setMe((await api.get("/students/me")).data))() }, [setMe]);
     useEffect(() => {
-        const kick = () => setMe(null);
-        socket.on("kick", kick);
+        const update = (d: Me | null) => setMe(d);
+        socket.on("update", update);
         return () => {
-            socket.off("kick", kick)
+            socket.off("update", update)
         }
     }, [me])
 
@@ -30,6 +27,9 @@ export const Student = () => {
             if (!data) {
                 alert("Ваш компьютер не прошёл проверку на совместимость с системой. Обратитесь к учителю.");
                 setMe(null);
+            } else if (data == 'rejected') {
+                alert("Игра недоступна, Вы были изгнаны или вышли из запущенной игры. Ожидайте следующего раунда.");
+                setMe(null);
             }
             else setMe(data);
         });
@@ -37,6 +37,6 @@ export const Student = () => {
 
 
     return <>
-        {(status == "reg" && (me == null || me == "checking")) ? <StudentLoginForm handler={login} me={me} /> : <StudentInfo meState={{ me, setMe } as any} />}
+        {(me == null || me == "checking") ? <StudentLoginForm handler={login} me={me} /> : <StudentContent meState={{ me, setMe } as any} />}
     </>
 }

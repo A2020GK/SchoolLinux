@@ -10,7 +10,7 @@ class Student:
 @dataclass
 class Data:
     students: dict
-    status: str # reg | init | run | done
+    status: str # reg | init | run
     
 def save():
     with open("data.pkl", "wb") as dbf:

@@ -112,7 +112,7 @@ td {
 }
 
 .rdg {
-    min-width: 50%;
+    min-width: 75%;
     background-color: transparent;
     border-radius: 15px;
 }
@@ -137,6 +137,7 @@ td {
     user-select: none;
     background-image: linear-gradient(to bottom, black, black, green);
     border-bottom: 1px solid white;
+    flex-direction: row;
 }
 
 .rdg-cell[role=columnheader]:nth-child(1) {
@@ -159,4 +160,16 @@ footer {
 footer a {
     text-decoration: none;
     color: inherit;
+}
+
+@keyframes spin {
+    from {
+        rotate:0deg;
+    }
+    to {
+        rotate:360deg;
+    }
+}
+.spinner {
+    animation: spin 1s infinite linear;
 }

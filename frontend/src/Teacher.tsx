@@ -2,6 +2,10 @@ import { useContext, type ReactNode, useState, useMemo, useEffect } from "react"
 import { InfoContext } from "./info"
 import { DataGrid, type Column, type SortColumn } from "react-data-grid"
 import { api, socket } from "./api";
+import { Status } from "./Status";
+import { downloadFile } from "./utils";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faCaretRight, faCircleNodes, faComputer, faGem, faGraduationCap, faPersonCircleMinus, faPlay, faStop, faUser } from "@fortawesome/free-solid-svg-icons";
 
 interface Row {
     ip: string;
@@ -25,7 +29,7 @@ export const Teacher = () => {
 
     useEffect(() => {
         const onstupdate = (data: Record<string, Student>) => {
-            if(Object.keys(data).length != Object.keys(students).length) setSortColumns([]);
+            if (Object.keys(data).length != Object.keys(students).length) setSortColumns([]);
             setStudents(data)
         }
         socket.on("students", onstupdate)
@@ -38,16 +42,16 @@ export const Teacher = () => {
 
     // Column definitions with sortable columns marked
     const columns: readonly Column<Row>[] = [
-        { key: "ip", name: "IP" },
-        { key: "pc", name: "Компьютер", sortable: true },
-        { key: "name", name: "Имя", sortable: true },
-        { key: "klads", name: "Клады", sortable: true },
-        { key: "action", name: "Действо" }
+        { key: "ip", name: <><FontAwesomeIcon icon={faCircleNodes} /> IP</> },
+        { key: "pc", name: <><FontAwesomeIcon icon={faComputer} /> Компьютер</>, sortable: true },
+        { key: "name", name: <><FontAwesomeIcon icon={faUser} /> Имя</>, sortable: true },
+        { key: "klads", name: <><FontAwesomeIcon icon={faGem} /> Клады</>, sortable: true },
+        { key: "action", name: <><FontAwesomeIcon icon={faCaretRight} /> Действо</> }
     ];
 
     const kick = async (ip: string) => {
         const t = (await api.post(`/students/kick/${ip}`)).data
-        if(!t) alert("Ошибка при изгнании");
+        if (!t) alert("Ошибка при изгнании");
         else setStudents(t);
 
     }
@@ -56,7 +60,7 @@ export const Teacher = () => {
         ip: ip, ...student, action: <button
             onMouseDown={e => e.stopPropagation()}
             onClick={() => kick(ip)}
-        >Изгнать</button>
+        ><FontAwesomeIcon icon={faPersonCircleMinus} /> Изгнать</button>
     });
 
     const rows: readonly Row[] = Object.keys(students).map(t => mkrow(t, students[t]));
@@ -78,14 +82,27 @@ export const Teacher = () => {
         });
     }, [rows, sortColumns]);
 
+    const buttonText = status == "run" ? <><FontAwesomeIcon icon={faStop} /> Остановить игру</> : <><FontAwesomeIcon icon={faPlay} /> Начать игру</>
+
+    const gameAction = async () => {
+        if (status == "reg") {
+            setStudents((await api.post("/game/start")).data);
+        } else {
+            const d = (await api.post("/game/stop")).data;
+            downloadFile("SchoolLinux-results.csv", d);
+        }
+    }
+
     return <>
-        <h1>Ученики</h1>
+        <h1><FontAwesomeIcon icon={faGraduationCap} /> Ученики</h1>
         <DataGrid
             columns={columns}
             rows={sortedRows}
             sortColumns={sortColumns}
             onSortColumnsChange={setSortColumns}
         />
+        <Status />
+        <button onClick={gameAction}>{buttonText}</button>
     </>
 }
 
