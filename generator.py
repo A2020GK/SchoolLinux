@@ -46,8 +46,9 @@ def mktree(ip):
     # Build the script
     script_lines = [
         "#!/bin/bash",
-        "set -e",
+        # "set -e",
         f"rm -rf \"{root}\"",
+        f"mkdir \"{root}\"",
         ""
     ]
     
@@ -110,6 +111,7 @@ def mktree(ip):
     client.exec_command(f'cat > {script_path} << \"SCRIPT_EOF\"\n{script_content}\nSCRIPT_EOF')
     client.exec_command(f"chmod +x {script_path}")
     stdin, stdout, stderr = client.exec_command(script_path)
+    print(stderr.read().decode())
     
     # Clean up
     client.exec_command(f"rm -f {script_path}")

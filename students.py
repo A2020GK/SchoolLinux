@@ -13,8 +13,6 @@ def students_format():
         r[ip] = student_format(s)
     return r
 
-update_teacher = send_to_ip("127.0.0.1", "update", students_format())
-
 @app.get("/students")
 async def students(request: Request):
     if not is_teacher(request.client.host):
