@@ -98,7 +98,8 @@ npx vite --host 0.0.0.0 --port 4000
 ```
 
 Students access the application by navigating to `http://<teacher_ip>:<port (4000)>` in their browsers.
-Game files are placed on students' computers in /home/<user>/Game
+
+Game files are placed on students' computers in /home/\<user\>/Game
 
 ## Game Mechanics
 
