@@ -58,6 +58,9 @@ The application implements a client-server architecture with the following compo
 
 ## Installation
 
+### 0. Install required dependencies
+Ensure Python and Node.JS are correctly installed and work on teacher's computer.
+
 ### 1. Clone Repository
 ```bash
 git clone https://github.com/A2020GK/SchoolLinux.git
