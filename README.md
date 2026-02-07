@@ -60,7 +60,9 @@ The application implements a client-server architecture with the following compo
 
 ### 0. Install required dependencies
 Ensure Python and Node.JS are correctly installed and work on teacher's computer.
+
 Ensure OpenSSH servers are installed and open on port 22 with proper firewall configuration on students' computers.
+
 Ensure teacher's computer and students' computers are in the same LAN (Local Area Network)
 
 ### 1. Clone Repository
