@@ -46,6 +46,7 @@ The application implements a client-server architecture with the following compo
 ### Server (Teacher's Computer)
 - **Operating System**: Linux-based (tested on МОС 12)
 - **Python**: 3.8 or higher
+- **Node.JS**: Latest version is recommended
 - **Network**: Local network connectivity to student machines
 - **Ports**: 8000 (API), 4000 (optional, for frontend).
 
