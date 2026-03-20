@@ -1,3 +1,2 @@
 fastapi[standard-no-fastapi-cloud-cli]==0.135.1
 python-socketio==5.16.1
-sqlmodel==0.0.37
