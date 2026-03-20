@@ -1,8 +1,7 @@
 from pydantic import BaseModel, ConfigDict
 from pydantic.alias_generators import to_camel
-from . import sio, ip_to_sid
+from .. import sio, ip_to_sid
 
-is_teacher = lambda r: r == "127.0.0.1"
 # is_teacher = lambda r: False
 
 class BaseSchema(BaseModel):
