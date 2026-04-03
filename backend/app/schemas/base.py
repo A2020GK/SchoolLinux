@@ -1,16 +1,14 @@
 from pydantic import BaseModel, ConfigDict
 from pydantic.alias_generators import to_camel
-from .. import sio, ip_to_sid
-
-# is_teacher = lambda r: False
 
 class BaseSchema(BaseModel):
+    """Base schema, converts snake_case to camelCase JSON keys"""
     model_config = ConfigDict(
         alias_generator=to_camel,
         populate_by_name=True,
         from_attributes=True,
+        str_strip_whitespace=True,
+        validate_assignment=True,
+        use_enum_values=True
     )
 
-async def send_to_ip(ip, event, data=None):
-    if ip in ip_to_sid:
-        await sio.emit(event, data, ip_to_sid[ip])

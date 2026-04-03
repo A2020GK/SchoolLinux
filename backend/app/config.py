@@ -11,8 +11,7 @@ class Config(BaseSettings):
         env_file_encoding="utf-8",
         extra="allow"
     )
-    debug: bool = True
-    database_url: str = "sqlite:///./data.db"
+    
     ssh_user: str = "game"
     ssh_password: str = "game"
     

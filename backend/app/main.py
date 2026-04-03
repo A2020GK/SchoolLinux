@@ -1,22 +1,18 @@
-from dotenv import load_dotenv
-load_dotenv()
-
+from .logging import *
+logger = logging.getLogger(__name__)
+logger.info("Starting SchoolLinux")
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from .services.socket import socket_app, sio
-from .models import init_db
+from .config import config
+from .socket import socket_app
+from .state import state
 from contextlib import asynccontextmanager
 
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    init_db()
-    yield
 
 app = FastAPI(
     title="SchoolLinux Backend",
     version="3.0.0",
     description="Backend for SchoolLinux project. Created by A2020GK.",
-    lifespan=lifespan
 )
 
 app.add_middleware(

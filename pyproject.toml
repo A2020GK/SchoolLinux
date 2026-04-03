@@ -1,2 +1,2 @@
 [tool.fastapi]
-entrypoint = "backend:app"
+entrypoint = "backend.app.main:app"
