@@ -1,14 +1,10 @@
 from __future__ import annotations
 
-from backend.app.config import config
-
-
-def _headers(ip: str) -> dict[str, str]:
-    return {config.ip_override_header: ip}
+from backend.tests.helpers import headers
 
 
 def test_teacher_can_get_all_games(client):
-    response = client.get("/game/list", headers=_headers("127.0.0.1"))
+    response = client.get("/game/list", headers=headers("127.0.0.1"))
 
     assert response.status_code == 200
     payload = response.json()
@@ -18,7 +14,7 @@ def test_teacher_can_get_all_games(client):
 
 
 def test_teacher_can_select_game_and_get_it_as_current(client):
-    set_response = client.post("/game/set/find", headers=_headers("127.0.0.1"))
+    set_response = client.post("/game/set/find", headers=headers("127.0.0.1"))
 
     assert set_response.status_code == 200
     selected = set_response.json()

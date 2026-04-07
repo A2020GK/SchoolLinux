@@ -2,12 +2,8 @@ from __future__ import annotations
 
 from typing import Any
 
-from backend.app.config import config
 from backend.app.socket.manager import manager
-
-
-def _headers(ip: str) -> dict[str, str]:
-    return {config.ip_override_header: ip}
+from backend.tests.helpers import headers
 
 
 def test_ping(client):
@@ -30,7 +26,7 @@ def test_user_can_register_and_teacher_gets_update(client, monkeypatch):
     response = client.post(
         "/user/register",
         json={"name": "Alex", "pcName": "pc-01"},
-        headers=_headers("10.0.0.11"),
+        headers=headers("10.0.0.11"),
     )
 
     assert response.status_code == 200
@@ -44,11 +40,11 @@ def test_user_can_get_own_profile(client):
     register_response = client.post(
         "/user/register",
         json={"name": "Alex", "pcName": "pc-01"},
-        headers=_headers("10.0.0.12"),
+        headers=headers("10.0.0.12"),
     )
     assert register_response.status_code == 200
 
-    me_response = client.get("/user/me", headers=_headers("10.0.0.12"))
+    me_response = client.get("/user/me", headers=headers("10.0.0.12"))
 
     assert me_response.status_code == 200
     assert me_response.json() == {"ip": "10.0.0.12", "score": 0, "kicked": False}
@@ -58,17 +54,17 @@ def test_teacher_can_get_all_users(client):
     first = client.post(
         "/user/register",
         json={"name": "Alex", "pcName": "pc-01"},
-        headers=_headers("10.0.0.21"),
+        headers=headers("10.0.0.21"),
     )
     second = client.post(
         "/user/register",
         json={"name": "Bob", "pcName": "pc-02"},
-        headers=_headers("10.0.0.22"),
+        headers=headers("10.0.0.22"),
     )
     assert first.status_code == 200
     assert second.status_code == 200
 
-    response = client.get("/user/all", headers=_headers("127.0.0.1"))
+    response = client.get("/user/all", headers=headers("127.0.0.1"))
 
     assert response.status_code == 200
     payload = response.json()
@@ -89,7 +85,7 @@ def test_teacher_can_kick_and_unkick_user_and_user_gets_updates(client, monkeypa
     register_response = client.post(
         "/user/register",
         json={"name": "Alex", "pcName": "pc-01"},
-        headers=_headers("10.0.0.33"),
+        headers=headers("10.0.0.33"),
     )
     assert register_response.status_code == 200
     captured.clear()
@@ -97,12 +93,12 @@ def test_teacher_can_kick_and_unkick_user_and_user_gets_updates(client, monkeypa
     kick_response = client.post(
         "/user/kick/10.0.0.33",
         json=True,
-        headers=_headers("127.0.0.1"),
+        headers=headers("127.0.0.1"),
     )
     unkick_response = client.post(
         "/user/kick/10.0.0.33",
         json=False,
-        headers=_headers("127.0.0.1"),
+        headers=headers("127.0.0.1"),
     )
 
     assert kick_response.status_code == 200
