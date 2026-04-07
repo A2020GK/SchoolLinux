@@ -8,7 +8,9 @@ import logging
 from ..helpers.json_safe_value import _json_safe_value
 
 logger = logging.getLogger(__name__)
-games: dict[str, Game] = {}
+
+# We cannot save this to App state since it contains literal games intances with code
+games: dict[str, Game] = {} 
 
 def discover_and_load_games() -> None:
     games_dir = Path("backend/app/games")
