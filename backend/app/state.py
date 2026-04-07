@@ -3,7 +3,6 @@ import json
 import logging
 import re
 from pathlib import Path
-from typing import Any
 from pydantic import Field, model_validator
 
 from .schemas.base import BaseSchema

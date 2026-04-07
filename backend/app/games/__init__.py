@@ -9,7 +9,7 @@ from typing import Any
 from paramiko import SSHClient
 from pydantic import Field
 
-from ..schemas.game import GameBase, GameSettingsItem, GamePersistedState
+from ..schemas.game import GameBase, GameSettingsItem
 
 
 class Game(GameBase):
@@ -38,7 +38,6 @@ class Game(GameBase):
     # Declarative game configuration.
     settings_form: dict[str, GameSettingsItem] = Field(default_factory=dict)
     settings: dict[str, str | int | bool] = Field(default_factory=dict)
-    game_data: dict[str, Any] = Field(default_factory=dict)
 
     # Per-student state template for a new start.
     default_game_data: dict = Field(default_factory=dict)
@@ -66,4 +65,4 @@ class Game(GameBase):
         raise NotImplementedError
 
 
-__all__ = ["Game", "GameSettingsItem", "GamePersistedState"]
+__all__ = ["Game", "GameSettingsItem"]

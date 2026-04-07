@@ -5,8 +5,7 @@ import importlib.util
 import sys
 import inspect
 import logging
-from typing import Any
-from backend.app.helpers.json_safe_value import _json_safe_value
+from ..helpers.json_safe_value import _json_safe_value
 
 logger = logging.getLogger(__name__)
 games: dict[str, Game] = {}
@@ -40,7 +39,7 @@ def discover_and_load_games() -> None:
                     game_instance = obj()
                     saved_game_state = state.data.games.get(game_key)
                     if saved_game_state is not None:
-                        game_instance.apply_persisted_state(saved_game_state)
+                        game_instance.apply_settings(saved_game_state.settings)
 
                     logger.info("Registered game: %s (%s)", name, game_key)
                     games[game_key] = game_instance
@@ -56,12 +55,14 @@ def discover_and_load_games() -> None:
         logger.warning("Current game '%s' is not available anymore, resetting", state.data.current_game)
         state.data.current_game = None
 
-    state.data.games = {}
+    persisted_games = {}
     for game_key, game_instance in games.items():
         persisted = game_instance.get_persisted_state()
-        state.data.games[game_key] = persisted.model_copy(
-            update={"game_data": _json_safe_value(persisted.game_data)}
+        persisted_games[game_key] = persisted.model_copy(
+            update={"settings": _json_safe_value(persisted.settings)}
         )
 
+    state.data.games = persisted_games
+
     state.save()
-            
+
