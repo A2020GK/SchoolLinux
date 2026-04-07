@@ -7,6 +7,7 @@ from pydantic import Field, model_validator
 
 from .schemas.base import BaseSchema
 from .schemas.game import GamePersistedState
+from .schemas.user import User
 
 logger = logging.getLogger(__name__)
 DATA_PATH = Path("./SLData.json")
@@ -19,6 +20,8 @@ def _is_valid_game_key(value: str) -> bool:
 class AppData(BaseSchema):
     current_game: str | None = None
     games: dict[str, GamePersistedState] = Field(default_factory=dict)
+
+    users: dict[str, User] = Field(default_factory=dict)
 
     @model_validator(mode="after")
     def _validate_games_payload(self) -> "AppData":

@@ -14,5 +14,7 @@ class Config(BaseSettings):
     
     ssh_user: str = "game"
     ssh_password: str = "game"
+    allow_ip_override: bool = Field(default=False)
+    ip_override_header: str = Field(default="X-Debug-IP")
     
 config = Config()

@@ -1,16 +1,22 @@
-from ..games import Game
-from ..state import state
-from pathlib import Path
 import importlib.util
-import sys
 import inspect
 import logging
+import sys
+from pathlib import Path
+
+from ..games import Game
 from ..helpers.json_safe_value import _json_safe_value
+from ..schemas.game import GameResponse
+from ..state import state
 
 logger = logging.getLogger(__name__)
 
 # We cannot save this to App state since it contains literal games intances with code
 games: dict[str, Game] = {} 
+
+
+def _game_to_response(game: Game) -> GameResponse:
+    return GameResponse.model_validate(game.model_dump(exclude={"default_game_data"}))
 
 def discover_and_load_games() -> None:
     games_dir = Path("backend/app/games")
@@ -67,4 +73,43 @@ def discover_and_load_games() -> None:
     state.data.games = persisted_games
 
     state.save()
+
+
+def get_current_game() -> GameResponse | None:
+    game_key = state.data.current_game
+    if game_key is None:
+        return None
+
+    game = games.get(game_key)
+    if game is None:
+        logger.warning("Current game key '%s' is missing in loaded games", game_key)
+        state.data.current_game = None
+        state.save()
+        return None
+
+    return _game_to_response(game)
+
+
+def list_games() -> list[GameResponse]:
+    return [_game_to_response(game) for game in games.values()]
+
+
+def set_current_game(game_key: str) -> GameResponse:
+    if game_key not in games:
+        raise ValueError(f"Game with key '{game_key}' does not exist")
+
+    state.data.current_game = game_key
+    state.save()
+
+    return _game_to_response(games[game_key])
+
+
+def start_game() -> None:
+    # Placeholder for future game lifecycle logic.
+    return None
+
+
+def stop_game() -> None:
+    # Placeholder for future game lifecycle logic.
+    return None
 

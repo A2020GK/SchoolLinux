@@ -39,5 +39,7 @@ async def ping():
     return "pong"
 
 from .routers import game
+from .routers import user
 
+app.include_router(user.router)
 app.include_router(game.router)

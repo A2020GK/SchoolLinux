@@ -2,7 +2,6 @@ import logging
 
 # Disable uvicorn loggers before importing FastAPI
 logging.getLogger("uvicorn").disabled = True
-logging.getLogger("uvicorn.access").disabled = True
 logging.getLogger("uvicorn.error").disabled = False
 
 # Configure logging for app
