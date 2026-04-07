@@ -3,16 +3,24 @@ logger = logging.getLogger(__name__)
 logger.info("Starting SchoolLinux")
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from .config import config
-from .socket import socket_app
-from .state import state
-from contextlib import asynccontextmanager
 
+from .socket import socket_app
+from contextlib import asynccontextmanager
+from .services.game import discover_and_load_games
+from .state import state
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    state.reload()
+    discover_and_load_games()
+    yield
+    
 
 app = FastAPI(
     title="SchoolLinux Backend",
     version="3.0.0",
-    description="Backend for SchoolLinux project. Created by A2020GK.",
+    description="Backend for SchoolLinux project. Developed by Antony.",
+    lifespan=lifespan
 )
 
 app.add_middleware(
@@ -29,3 +37,7 @@ app.mount("/socket.io", socket_app)
 async def ping():
     """Endpoint for checking if the server is alive. Returns "pong" if the server is running."""
     return "pong"
+
+from .routers import game
+
+app.include_router(game.router)

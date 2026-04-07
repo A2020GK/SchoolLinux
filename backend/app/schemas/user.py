@@ -1,10 +1,11 @@
-from . import BaseSchema
-from .game import GameTask
+from .base import BaseSchema
+from typing import Any
 
 class UserResponse(BaseSchema):
     ip: str
     pc_name: str
-    score: int
+    score: int = 0
     
 class User(UserResponse):
-    task: GameTask | None = None
+    game_data: dict[Any, Any] = {}
+
