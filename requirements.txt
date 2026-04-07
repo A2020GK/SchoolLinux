@@ -1,3 +1,4 @@
 fastapi[standard-no-fastapi-cloud-cli]==0.135.1
 python-socketio==5.16.1
 paramiko==4.0.0
+pytest==9.0.3

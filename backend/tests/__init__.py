@@ -1,0 +1,1 @@
+"""Shared pytest scaffolding for the backend test suite."""
