@@ -106,8 +106,14 @@ def set_current_game(game_key: str) -> GameResponse:
 
 def start_game() -> None:
     # Placeholder for future game lifecycle logic.
-    return None
-
+    # Steps:
+    # 1. Get current game
+    # 2. Set system state to "init"
+    # 3. Init game data for all user with game.default_game_data
+    # 4. Call game.install for all users
+    # 5. Set system state to "run"
+    current_game = get_current_game()
+    
 
 def stop_game() -> None:
     # Placeholder for future game lifecycle logic.
