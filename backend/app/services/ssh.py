@@ -1,4 +1,6 @@
-from paramiko import SSHClient, AutoAddPolicy
+import socket
+
+from paramiko import SSHException, SSHClient, AutoAddPolicy
 from backend.app.config import config
 import logging
 
@@ -21,6 +23,14 @@ def execute_command(client: SSHClient, command: str):
     logger.info(f"Executing command '{command}' on ip {client.get_transport().getpeername()[0]}")
     stdin, stdout, stderr = client.exec_command(command)
     return stdout.read().decode("utf-8"), stderr.read().decode("utf-8")
+
+def check_ip(ip: str) -> bool:
+    try:
+        client = create_client_from_config(ip)
+        client.close()
+        return True
+    except (SSHException, OSError, socket.error):
+        return False
 
 def upload_and_run_script(client: SSHClient, name: str, script: str):
     logger.info(f"Uploading script {name} to ip {client.get_transport().getpeername()[0]}")
