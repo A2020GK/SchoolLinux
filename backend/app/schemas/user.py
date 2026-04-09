@@ -5,11 +5,17 @@ class RegisterRequest(BaseSchema):
     name: str
     pc_name: str
 
-class UserResponse(BaseSchema):
+class SafeUserData(BaseSchema):
     ip: str
     score: int = 0
     kicked: bool = False
-    
-class User(UserResponse):
+
+class User(SafeUserData):
     game_data: dict[Any, Any] = {}
+
+class UserResponse(BaseSchema):
+    """Response returned to any client. is_teacher indicates whether the caller is a teacher.
+    user contains the caller's SafeUserData when is_teacher is False, and is None when is_teacher is True."""
+    is_teacher: bool
+    user: SafeUserData | None
 

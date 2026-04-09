@@ -30,7 +30,7 @@ def test_user_can_register_and_teacher_gets_update(client, monkeypatch):
     )
 
     assert response.status_code == 200
-    assert response.json() == {"ip": "10.0.0.11", "score": 0, "kicked": False}
+    assert response.json() == {"isTeacher": False, "user": {"ip": "10.0.0.11", "score": 0, "kicked": False}}
     assert captured["event"] == "users_update"
     assert isinstance(captured["data"], list)
     assert captured["data"][0]["ip"] == "10.0.0.11"
@@ -47,7 +47,7 @@ def test_user_can_get_own_profile(client):
     me_response = client.get("/user/me", headers=headers("10.0.0.12"))
 
     assert me_response.status_code == 200
-    assert me_response.json() == {"ip": "10.0.0.12", "score": 0, "kicked": False}
+    assert me_response.json() == {"isTeacher": False, "user": {"ip": "10.0.0.12", "score": 0, "kicked": False}}
 
 
 def test_teacher_can_get_all_users(client):
