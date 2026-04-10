@@ -23,8 +23,8 @@ export async function getAllUsers(): Promise<UsersMap> {
 	return response.data;
 }
 
-export async function setUserKicked(ip: string, kicked: boolean): Promise<boolean> {
-	const response = await api.post<boolean>(`${USER_PREFIX}/kick/${encodeURIComponent(ip)}`, kicked);
+export async function setUserKicked(ip: string, kicked: boolean): Promise<SafeUserData> {
+	const response = await api.post<SafeUserData>(`${USER_PREFIX}/kick/${encodeURIComponent(ip)}`, kicked);
 	return response.data;
 }
 

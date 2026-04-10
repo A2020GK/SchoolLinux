@@ -1,6 +1,8 @@
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import type { UserResponse } from "../types/user";
 import { getCurrentUser } from "../api/user";
+import { toError } from "../helpers/error";
+import { frontendEnv, getMockUserResponse } from "../config/env";
 
 export interface UserContextValue {
     user: UserResponse | null;
@@ -16,29 +18,36 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<Error | null>(null);
 
-    const fetchUser = async () => {
+    const fetchUser = useCallback(async () => {
+        if (frontendEnv.mockPreview.enabled) {
+            setLoading(false);
+            setError(null);
+            setUser(getMockUserResponse());
+            return;
+        }
+
         try {
             setLoading(true);
             setError(null);
             const response = await getCurrentUser();
             setUser(response);
         } catch (err) {
-            setError(err instanceof Error ? err : new Error(String(err)));
+            setError(toError(err));
         } finally {
             setLoading(false);
         }
-    };
+    }, []);
 
     useEffect(() => {
         fetchUser();
     }, []);
 
-    const value: UserContextValue = {
+    const value: UserContextValue = useMemo(() => ({
         user,
         loading,
         error,
         refetch: fetchUser,
-    };
+    }), [error, fetchUser, loading, user]);
 
     return <UserContext.Provider value={value}>{children}</UserContext.Provider>;
 };

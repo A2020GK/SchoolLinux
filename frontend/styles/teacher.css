@@ -1,0 +1,420 @@
+/* Teacher View */
+.teacher-view {
+    display: flex;
+    flex-direction: column;
+}
+
+.teacher-view h1 {
+    margin-bottom: 30px;
+}
+
+/* Table Wrapper */
+.table-wrapper {
+    flex: 1;
+    overflow: hidden;
+    margin-bottom: 30px;
+    border: 1px solid rgba(93, 165, 123, 0.3);
+    border-radius: 16px;
+    background-color: rgba(23, 34, 28, 0.82);
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    min-height: 300px;
+}
+
+/* React Data Grid Customization */
+.teacher-datagrid {
+    --rdg-background-color: rgba(23, 34, 28, 0.82) !important;
+    --rdg-text-color: #c8d3ca !important;
+    --rdg-selection-color: rgba(93, 165, 123, 0.22) !important;
+    --rdg-border-color: rgba(93, 165, 123, 0.24) !important;
+    width: 100% !important;
+    height: 100% !important;
+}
+
+.rdg-header-cell {
+    background-color: rgba(0, 0, 0, 0.6) !important;
+    color: var(--accent-strong) !important;
+    border-bottom: 1px solid rgba(93, 165, 123, 0.45) !important;
+    font-weight: bold !important;
+    padding: 12px 15px !important;
+}
+
+.rdg-header-cell:hover {
+    background-color: rgba(93, 165, 123, 0.12) !important;
+}
+
+.rdg-cell {
+    color: #c8d3ca !important;
+    border-right: 1px solid rgba(93, 165, 123, 0.18) !important;
+    border-bottom: 1px solid rgba(93, 165, 123, 0.2) !important;
+    padding: 12px 15px !important;
+}
+
+.teacher-datagrid .rdg-cell.action-cell {
+    padding: 0 !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.teacher-datagrid .rdg-cell.action-cell .kick-btn,
+.teacher-datagrid .rdg-cell.action-cell .restore-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    margin: 0;
+}
+
+.rdg-row {
+    background-color: rgba(23, 34, 28, 0.82) !important;
+}
+
+.rdg-row:hover {
+    background-color: rgba(93, 165, 123, 0.08) !important;
+}
+
+.rdg-row.rdg-selected {
+    background-color: rgba(93, 165, 123, 0.14) !important;
+}
+
+.rdg-row.kicked {
+    background-color: rgba(255, 68, 68, 0.1) !important;
+    opacity: 0.7;
+}
+
+.rdg-row.kicked .rdg-cell {
+    color: #999999 !important;
+    text-decoration: line-through;
+}
+
+/* Sorting indicators */
+.rdg-sort-rank {
+    color: var(--accent-strong) !important;
+}
+
+.rdg-sort-rank::before {
+    content: attr(title);
+    color: var(--accent-strong);
+}
+
+/* Kick Button */
+.kick-btn {
+    padding: 6px 12px;
+    background-color: #ff4444;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 0.85em;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+}
+
+.kick-btn:hover:not(:disabled) {
+    background-color: #ff6666;
+    box-shadow: 0 8px 18px rgba(211, 93, 93, 0.35);
+}
+
+.kick-btn:disabled {
+    background-color: #666666;
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+
+/* Restore Button */
+.restore-btn {
+    padding: 6px 12px;
+    background-color: var(--accent);
+    color: #112118;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 0.85em;
+    font-weight: bold;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+}
+
+.restore-btn:hover:not(:disabled) {
+    background-color: var(--accent-strong);
+    box-shadow: 0 8px 18px rgba(93, 165, 123, 0.34);
+}
+
+.restore-btn:disabled {
+    background-color: #666666;
+    color: #999999;
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+
+/* Settings Form */
+.settings-form {
+    margin-top: 15px;
+    padding: 15px;
+    background-color: rgba(0, 0, 0, 0.4);
+    border: 1px solid rgba(93, 165, 123, 0.28);
+    border-radius: 14px;
+}
+
+.settings-form h4 {
+    margin-top: 0;
+    color: var(--accent-strong);
+}
+
+.setting-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 12px;
+}
+
+.setting-item label {
+    flex: 0 0 150px;
+    color: #cccccc;
+    font-weight: 500;
+}
+
+.setting-input,
+.setting-select {
+    flex: 1;
+    max-width: 300px;
+    padding: 8px 12px;
+    background-color: rgba(29, 42, 34, 0.85);
+    color: var(--accent-strong);
+    border: 1px solid rgba(93, 165, 123, 0.35);
+    border-radius: 10px;
+    font-size: 0.95em;
+    font-family: inherit;
+}
+
+.setting-input:focus,
+.setting-select:focus {
+    outline: none;
+    border-color: var(--accent-strong);
+    box-shadow: 0 0 0 3px rgba(93, 165, 123, 0.16);
+}
+
+.setting-input:disabled,
+.setting-select:disabled {
+    background-color: rgba(50, 50, 50, 0.8);
+    color: #666666;
+    cursor: not-allowed;
+    opacity: 0.6;
+    border-color: rgba(93, 165, 123, 0.2);
+}
+
+.setting-checkbox {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+    accent-color: var(--accent);
+}
+
+.setting-checkbox:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+
+.apply-settings-btn {
+    margin-top: 10px;
+    padding: 8px 16px;
+    background-color: var(--accent);
+    color: #112118;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 0.9em;
+    transition: all 0.3s ease;
+}
+
+.apply-settings-btn:hover:not(:disabled) {
+    background-color: var(--accent-strong);
+    box-shadow: 0 8px 20px rgba(93, 165, 123, 0.36);
+}
+
+.apply-settings-btn:disabled {
+    background-color: #666666;
+    color: #999999;
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+
+/* Game Controls */
+.game-controls {
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 1px solid rgba(93, 165, 123, 0.2);
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.start-btn {
+    padding: 10px 16px;
+    background-color: var(--accent);
+    color: #000;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 0.95em;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.start-btn:hover:not(:disabled) {
+    background-color: var(--accent-strong);
+    box-shadow: 0 8px 20px rgba(93, 165, 123, 0.38);
+}
+
+.start-btn:disabled {
+    background-color: #666666;
+    color: #999999;
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+
+.stop-btn {
+    padding: 10px 16px;
+    background-color: #dd0000;
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 0.95em;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.stop-btn:hover:not(:disabled) {
+    background-color: #ff4444;
+    box-shadow: 0 8px 20px rgba(211, 93, 93, 0.4);
+}
+
+.stop-btn:disabled {
+    background-color: #666666;
+    color: #999999;
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+
+.game-state {
+    margin-left: auto;
+    padding: 8px 12px;
+    border-radius: 999px;
+    font-weight: bold;
+    font-size: 0.9em;
+}
+
+.game-state.idle {
+    background-color: rgba(100, 150, 200, 0.4);
+    color: #87ceeb;
+}
+
+.game-state.init {
+    background-color: rgba(255, 200, 0, 0.3);
+    color: #ffd700;
+}
+
+.game-state.running {
+    background-color: rgba(93, 165, 123, 0.2);
+    color: var(--accent-strong);
+}
+
+.game-state.stopped {
+    background-color: rgba(255, 68, 68, 0.2);
+    color: #ff6666;
+}
+
+/* Controls Section */
+.controls-section {
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+    margin-top: auto;
+    padding-top: 20px;
+    border-top: 1px solid rgba(93, 165, 123, 0.28);
+}
+
+.game-selector {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.game-selector label {
+    color: var(--accent-strong);
+    font-weight: bold;
+}
+
+.game-selector select {
+    padding: 10px;
+    background-color: rgba(29, 42, 34, 0.9);
+    color: var(--accent-strong);
+    border: 1px solid rgba(93, 165, 123, 0.45);
+    border-radius: 10px;
+    font-size: 1em;
+    cursor: pointer;
+    min-width: 250px;
+}
+
+.game-selector select:focus {
+    outline: none;
+    border-color: var(--accent-strong);
+    box-shadow: 0 0 0 3px rgba(93, 165, 123, 0.16);
+}
+
+.game-selector select option {
+    background-color: #1a241d;
+    color: var(--accent-strong);
+}
+
+.current-game-info {
+    flex: 1;
+    padding: 15px;
+    background-color: rgba(93, 165, 123, 0.12);
+    border-left: 3px solid var(--accent);
+    border-radius: 12px;
+}
+
+.current-game-info h3 {
+    margin-top: 0;
+}
+
+.current-game-info p {
+    margin: 5px 0;
+    color: #cccccc;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .controls-section {
+        flex-direction: column;
+    }
+
+    .game-selector select {
+        min-width: 100%;
+    }
+
+    .rdg-cell,
+    .rdg-header-cell {
+        padding: 8px 10px !important;
+        font-size: 0.9em;
+    }
+
+    .kick-btn {
+        font-size: 0.75em;
+        padding: 4px 8px;
+    }
+}
+

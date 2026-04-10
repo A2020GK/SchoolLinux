@@ -1,7 +1,8 @@
 import axios from "axios";
 import { io } from "socket.io-client";
+import { frontendEnv } from "../config/env";
 
-const apiBaseUrl = `http://${location.hostname}:8000`;
+const apiBaseUrl = frontendEnv.apiBaseUrl;
 
 export const api = axios.create({
     baseURL: `${apiBaseUrl}/`,

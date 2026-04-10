@@ -42,10 +42,16 @@ async def get_current_user(user: CurrentUserDep, is_teacher: IsTeacherDep) -> Us
     return UserResponse(is_teacher=False, user=convert_to_safe(user))
 
 @router.post("/kick/{ip}")
-async def kick_user(ip: str, kicked: Annotated[bool, Body()], _: TeacherOnlyDep):
-    """Kick a user by their IP address. Only for teachers (localhost)."""
+async def kick_user(ip: str, kicked: Annotated[bool, Body()], _: TeacherOnlyDep) -> SafeUserData:
+    """Kick a user by their IP address. Only for teachers (localhost). Returns the updated user state."""
     success = set_kicked(ip, kicked)
     if not success:
         raise HTTPException(status_code=404, detail="User not found.")
+    
+    user = get_all_users_service().get(ip)
+    if user is None:
+        raise HTTPException(status_code=404, detail="User not found.")
+    
     await manager.send_to_ip(ip, "kicked", {"kicked": kicked})
+    return convert_to_safe(user)
     return success

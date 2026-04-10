@@ -1,0 +1,317 @@
+/* Student View */
+.student-view {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 40px 20px;
+}
+
+.student-view.login-view {
+    justify-content: center;
+}
+
+.student-view.content-view {
+    justify-content: flex-start;
+}
+
+.student-view .content {
+    width: 100%;
+    max-width: 600px;
+}
+
+/* Student View Heading */
+.student-view h1 {
+    text-align: center;
+    margin-bottom: 10px;
+}
+
+.student-view h2 {
+    text-align: center;
+    color: var(--text-muted);
+}
+
+/* Login View Styles */
+.login-view form {
+    background-color: rgba(23, 34, 28, 0.9);
+    padding: 30px;
+    border-radius: 18px;
+    border: 1px solid var(--accent-soft);
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.28);
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    color: var(--accent-strong);
+    font-weight: bold;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 12px;
+    background-color: rgba(29, 42, 34, 0.8);
+    color: var(--accent-strong);
+    border: 1px solid rgba(93, 165, 123, 0.45);
+    border-radius: 10px;
+    font-size: 1em;
+    box-sizing: border-box;
+}
+
+.form-group input:focus {
+    outline: none;
+    border-color: var(--accent-strong);
+    box-shadow: 0 0 0 3px rgba(93, 165, 123, 0.18);
+}
+
+.form-group input:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.form-group details {
+    margin-top: 8px;
+}
+
+.form-group summary {
+    cursor: pointer;
+    color: #888888;
+    font-size: 0.9em;
+    user-select: none;
+}
+
+.form-group summary:hover {
+    color: #aaaaaa;
+}
+
+.form-group details p {
+    margin: 10px 0 5px 15px;
+    color: #666666;
+    font-size: 0.9em;
+}
+
+form > button {
+    width: 100%;
+    padding: 12px;
+    background-color: var(--accent);
+    color: #102016;
+    border: none;
+    border-radius: 12px;
+    font-size: 1.1em;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-top: 20px;
+}
+
+form > button:hover:not(:disabled) {
+    background-color: var(--accent-strong);
+    box-shadow: 0 10px 22px rgba(93, 165, 123, 0.34);
+    transform: scale(1.02);
+}
+
+form > button:disabled {
+    background-color: #888888;
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+/* Loading Text */
+.loading-text {
+    text-align: center;
+    margin-top: 20px;
+    color: var(--accent-strong);
+    font-weight: bold;
+}
+
+.loading-text .spinner {
+    animation: spin 1s linear infinite;
+    margin-right: 10px;
+}
+
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.disclaimer {
+    text-align: center;
+    margin-top: 15px;
+    color: #666666;
+    font-size: 0.85em;
+}
+
+hr {
+    border: none;
+    border-top: 1px solid rgba(93, 165, 123, 0.2);
+    margin: 20px 0;
+}
+
+/* Content View Styles */
+.content-view h1,
+.content-view h2 {
+    text-align: left;
+}
+
+/* Score Section */
+.score-section {
+    display: flex;
+    justify-content: center;
+    margin: 30px 0;
+}
+
+.score-display {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 20px 30px;
+    background: linear-gradient(135deg, rgba(93, 165, 123, 0.2), rgba(93, 165, 123, 0.06));
+    border: 1px solid rgba(93, 165, 123, 0.45);
+    border-radius: 18px;
+    font-size: 2em;
+}
+
+.score-display svg {
+    color: #ffff00;
+    font-size: 1.2em;
+}
+
+.score-value {
+    color: var(--accent-strong);
+    font-weight: bold;
+    font-size: 1.5em;
+}
+
+/* Game Section */
+.game-section {
+    background-color: rgba(23, 34, 28, 0.9);
+    padding: 20px;
+    border-radius: 16px;
+    border: 1px solid rgba(93, 165, 123, 0.28);
+    margin: 20px 0;
+}
+
+.game-section h3 {
+    margin-top: 0;
+}
+
+.game-section p {
+    color: #cccccc;
+    line-height: 1.6;
+}
+
+.info-text {
+    text-align: center;
+    color: #888888;
+    font-style: italic;
+    padding: 20px;
+}
+
+/* Submission Form */
+.submission-form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.submission-form label {
+    color: var(--accent-strong);
+    font-weight: bold;
+}
+
+.form-row {
+    display: flex;
+    gap: 10px;
+}
+
+.form-row input {
+    flex: 1;
+    padding: 10px;
+    background-color: rgba(29, 42, 34, 0.8);
+    color: var(--accent-strong);
+    border: 1px solid rgba(93, 165, 123, 0.45);
+    border-radius: 10px;
+    font-size: 1em;
+}
+
+.form-row input:focus {
+    outline: none;
+    border-color: var(--accent-strong);
+    box-shadow: 0 0 0 3px rgba(93, 165, 123, 0.18);
+}
+
+.form-row button {
+    padding: 10px 20px;
+    background-color: var(--accent);
+    color: #102016;
+    border: none;
+    border-radius: 10px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+}
+
+.form-row button:hover:not(:disabled) {
+    background-color: var(--accent-strong);
+    box-shadow: 0 8px 18px rgba(93, 165, 123, 0.34);
+}
+
+.form-row button:disabled {
+    background-color: #888888;
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+/* Logout Button */
+.logout-btn {
+    width: 100%;
+    padding: 12px;
+    background-color: #ff4444;
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 1.1em;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-top: 20px;
+}
+
+.logout-btn:hover {
+    background-color: #ff6666;
+    box-shadow: 0 8px 18px rgba(211, 93, 93, 0.35);
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+    .student-view .content {
+        max-width: 100%;
+    }
+
+    .login-view form {
+        padding: 20px;
+    }
+
+    .form-row {
+        flex-direction: column;
+    }
+
+    .form-row button {
+        width: 100%;
+    }
+
+    .score-display {
+        flex-direction: column;
+        font-size: 1.5em;
+    }
+}

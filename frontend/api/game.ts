@@ -22,6 +22,11 @@ export async function setCurrentGame(payload: GameChangeRequest): Promise<GameRe
     return response.data;
 }
 
+export async function getGameState(): Promise<{ state: "idle" | "init" | "running" | "stopped" }> {
+    const response = await api.get<{ state: "idle" | "init" | "running" | "stopped" }>(`${GAME_PREFIX}/state`);
+    return response.data;
+}
+
 // Backend currently returns no body from /game/start.
 export async function startGame(): Promise<void> {
     await api.post(`${GAME_PREFIX}/start`);

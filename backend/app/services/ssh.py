@@ -39,6 +39,6 @@ def upload_and_run_script(client: SSHClient, name: str, script: str):
     with sftp.file(remote_path, "w") as remote_file:
         remote_file.write(script)
     sftp.chmod(remote_path, 0o755)
-    stdout, stderr = client.exec_command(f"bash {remote_path}")
+    stdin, stdout, stderr= client.exec_command(f"bash {remote_path}")
     logger.info(f"Script {name} executed on ip {client.get_transport().getpeername()[0]}")
     return stdout, stderr

@@ -1,6 +1,8 @@
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import type { GameChangeRequest, GameResponse } from "../types/game";
 import { listGames, getCurrentGame, setCurrentGame as setCurrentGameAPI } from "../api/game";
+import { toError } from "../helpers/error";
+import { frontendEnv } from "../config/env";
 
 export interface ExtendedGameContextValue {
     currentGame: GameResponse | null;
@@ -20,47 +22,76 @@ export const ExtendedGameProvider: React.FC<{ children: React.ReactNode }> = ({ 
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<Error | null>(null);
 
-    const fetchCurrentGame = async () => {
+    const fetchCurrentGame = useCallback(async () => {
+        if (frontendEnv.mockPreview.enabled) {
+            setLoading(false);
+            setError(null);
+            setCurrentGameState(frontendEnv.mockPreview.currentGame);
+            return;
+        }
+
         try {
             setLoading(true);
             setError(null);
             const response = await getCurrentGame();
             setCurrentGameState(response as GameResponse | null);
         } catch (err) {
-            setError(err instanceof Error ? err : new Error(String(err)));
+            setError(toError(err));
         } finally {
             setLoading(false);
         }
-    };
+    }, []);
 
-    const fetchGamesList = async () => {
+    const fetchGamesList = useCallback(async () => {
+        if (frontendEnv.mockPreview.enabled) {
+            setError(null);
+            setGamesList(frontendEnv.mockPreview.gamesList);
+            return;
+        }
+
         try {
             setError(null);
             const response = await listGames();
             setGamesList(response);
         } catch (err) {
-            setError(err instanceof Error ? err : new Error(String(err)));
+            setError(toError(err));
         }
-    };
+    }, []);
 
-    const handleSetCurrentGame = async (gameKey: string, settings?: Record<string, string | number | boolean>) => {
+    const handleSetCurrentGame = useCallback(async (gameKey: string, settings?: Record<string, string | number | boolean>) => {
+        if (frontendEnv.mockPreview.enabled) {
+            const selectedGame = (gamesList ?? frontendEnv.mockPreview.gamesList)[gameKey];
+            if (!selectedGame) {
+                throw new Error("Unknown mock game key");
+            }
+
+            setCurrentGameState({
+                ...selectedGame,
+                settings: {
+                    ...selectedGame.settings,
+                    ...(settings ?? {}),
+                },
+            });
+            return;
+        }
+
         try {
             setError(null);
             const payload: GameChangeRequest = { gameKey, settings };
             const response = await setCurrentGameAPI(payload);
             setCurrentGameState(response);
         } catch (err) {
-            setError(err instanceof Error ? err : new Error(String(err)));
+            setError(toError(err));
             throw err;
         }
-    };
+    }, []);
 
     useEffect(() => {
         fetchCurrentGame();
         fetchGamesList();
     }, []);
 
-    const value: ExtendedGameContextValue = {
+    const value: ExtendedGameContextValue = useMemo(() => ({
         currentGame,
         gamesList,
         loading,
@@ -68,7 +99,7 @@ export const ExtendedGameProvider: React.FC<{ children: React.ReactNode }> = ({ 
         setCurrentGame: handleSetCurrentGame,
         refetchCurrent: fetchCurrentGame,
         refetchList: fetchGamesList,
-    };
+    }), [currentGame, error, fetchCurrentGame, fetchGamesList, gamesList, handleSetCurrentGame, loading]);
 
     return <ExtendedGameContext.Provider value={value}>{children}</ExtendedGameContext.Provider>;
 };

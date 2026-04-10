@@ -4,6 +4,7 @@ import logging
 import re
 from pathlib import Path
 from pydantic import Field, model_validator
+from typing import Literal
 
 from .schemas.base import BaseSchema
 from .schemas.game import GamePersistedState
@@ -19,6 +20,7 @@ def _is_valid_game_key(value: str) -> bool:
 
 class AppData(BaseSchema):
     current_game: str | None = None
+    state: Literal["idle", "init", "running", "stopped"] = "idle"
     games: dict[str, GamePersistedState] = Field(default_factory=dict)
 
     users: dict[str, User] = Field(default_factory=dict)

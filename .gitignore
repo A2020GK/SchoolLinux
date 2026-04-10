@@ -240,3 +240,4 @@ __marimo__/
 # Streamlit
 .streamlit/secrets.toml
 SLData.json
+frontend.old
