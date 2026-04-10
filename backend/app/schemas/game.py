@@ -37,18 +37,23 @@ class GameSettingsItem(BaseSchema):
         return value
 
 
-class GameResponse(BaseSchema):
-    """Public representation of a game without runtime-only data."""
-
+class GameResponseSafe(BaseSchema):
     name: str = "Base Game"
     description: str = "Base game description"
-
+    
     string_submission: bool = False
-    anticheat_required: bool = False
-
     required_user_score: int = 0
-    settings_form: Optional[dict[str, GameSettingsItem]] = Field(default_factory=dict)
+    
     settings: dict[str, str | int | bool] = Field(default_factory=dict)
+    
+class GameResponse(GameResponseSafe):
+    anticheat_required: bool = False
+    settings_form: Optional[dict[str, GameSettingsItem]] = Field(default_factory=dict)
+   
+
+class GameChangeRequest(BaseSchema):
+    game_key: str
+    settings: Optional[dict[str, str | int | bool]] = None
 
 
 class GamePersistedState(BaseSchema):
@@ -88,6 +93,6 @@ class GameBase(GameResponse):
             settings=self.settings,
         )
 
-    def reset_game_data(self) -> dict[str, Any]:
+    def new_game_data(self) -> dict[str, Any]:
         """Create a fresh runtime game data object for a new game start."""
         return deepcopy(self.default_game_data)

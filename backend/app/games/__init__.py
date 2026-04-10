@@ -10,7 +10,7 @@ from paramiko import SSHClient
 from pydantic import Field
 
 from ..schemas.game import GameBase, GameSettingsItem
-
+from backend.app.services.ssh import *
 
 class Game(GameBase):
     """Base class for custom games.

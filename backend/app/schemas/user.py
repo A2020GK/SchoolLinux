@@ -5,8 +5,7 @@ class RegisterRequest(BaseSchema):
     name: str
     pc_name: str
 
-class SafeUserData(BaseSchema):
-    ip: str
+class SafeUserData(RegisterRequest):
     score: int = 0
     kicked: bool = False
 

@@ -6,8 +6,10 @@ from pathlib import Path
 
 from ..games import Game
 from ..helpers.json_safe_value import _json_safe_value
-from ..schemas.game import GameResponse
+from ..schemas.game import GameResponse, GameResponseSafe
 from ..state import state
+from .user import get_all_users
+from backend.app.services.ssh import create_client_from_config
 
 logger = logging.getLogger(__name__)
 
@@ -75,33 +77,42 @@ def discover_and_load_games() -> None:
     state.save()
 
 
-def get_current_game() -> GameResponse | None:
+def get_current_game() -> Game | None:
     game_key = state.data.current_game
     if game_key is None:
         return None
+    return games.get(game_key)
 
-    game = games.get(game_key)
+def get_current_game_response(safe: bool = False) -> GameResponse | None:
+    game = get_current_game()
     if game is None:
-        logger.warning("Current game key '%s' is missing in loaded games", game_key)
-        state.data.current_game = None
-        state.save()
         return None
-
+    if safe:
+        return GameResponseSafe.model_validate(_game_to_response(game).model_dump(exclude={"settings_form", "anticheat_required"}))
     return _game_to_response(game)
 
 
-def list_games() -> list[GameResponse]:
-    return [_game_to_response(game) for game in games.values()]
+def list_games() -> dict[str, GameResponse]:
+    return {game_key: _game_to_response(game) for game_key, game in games.items()}
 
 
-def set_current_game(game_key: str) -> GameResponse:
+def set_current_game(game_key: str, settings: dict[str, str | int | bool] | None) -> GameResponse:
     if game_key not in games:
         raise ValueError(f"Game with key '{game_key}' does not exist")
 
     state.data.current_game = game_key
-    state.save()
 
-    return _game_to_response(games[game_key])
+    game = games[game_key]
+    if settings is not None:
+        game.apply_settings(settings)
+
+    persisted = game.get_persisted_state()
+    state.data.games[game_key] = persisted.model_copy(
+        update={"settings": _json_safe_value(persisted.settings)}
+    )
+
+    state.save()
+    return _game_to_response(game)
 
 
 def start_game() -> None:
@@ -113,9 +124,47 @@ def start_game() -> None:
     # 4. Call game.install for all users
     # 5. Set system state to "run"
     current_game = get_current_game()
-    
+    for ip, user in get_all_users().items():
+        user.game_data = current_game.new_game_data()
+        
+        try:
+            logger.info("Installing game for user %s (%s)", user.name, ip)
+            client = create_client_from_config(ip)
+            current_game.install(client, user.game_data)
+            
+        except Exception as exc:
+            logger.error("Failed to install game for user %s (%s): %s", user.name, ip, exc, exc_info=True)
+        
+    state.save()
 
 def stop_game() -> None:
-    # Placeholder for future game lifecycle logic.
-    return None
+    current_game = get_current_game()
+    for ip, user in get_all_users().items():
+        try:
+            logger.info("Uninstalling game for user %s (%s)", user.name, ip)
+            client = create_client_from_config(ip)
+            current_game.uninstall(client, user.game_data)
+            
+        except Exception as exc:
+            logger.error("Failed to uninstall game for user %s (%s): %s", user.name, ip, exc, exc_info=True)
+    state.save()
+    
+def check(ip, submission: str = "") -> int:
+    current_game = get_current_game()
+    user = get_all_users().get(ip)
+    if user is None:
+        logger.warning("Check called for unknown user with IP %s", ip)
+        return 0
+    
+    try:
+        client = create_client_from_config(ip)
+        if current_game.string_submission:
+            user.score += current_game.check_string_submission(submission, user.game_data)
+        else:
+            user.score = current_game.check(client, user.game_data)
 
+        logger.info("Checked game for user %s (%s), new score: %d", user.name, ip, user.score)
+        state.save()
+        return user.score
+    except Exception as exc:
+        logger.error("Failed to check game for user %s (%s): %s", user.name, ip, exc, exc_info=True)

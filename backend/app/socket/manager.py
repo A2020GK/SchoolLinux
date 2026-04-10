@@ -41,4 +41,9 @@ class ConnectionManager:
     async def send_to_teacher(self, event: str, data) -> bool:
         return await self.send_to_ip(self._teacher_ip, event, data)
     
+    async def send_to_everyone_except_teacher(self, event: str, data) -> None:
+        for ip, sid in self._ip_to_sid.items():
+            if ip != self._teacher_ip:
+                await self.send_to_ip(ip, event, data)
+    
 manager = ConnectionManager()

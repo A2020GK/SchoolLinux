@@ -29,7 +29,7 @@ def check_ip(ip: str) -> bool:
         client = create_client_from_config(ip)
         client.close()
         return True
-    except (SSHException, OSError, socket.error):
+    except Exception:
         return False
 
 def upload_and_run_script(client: SSHClient, name: str, script: str):
