@@ -22,7 +22,10 @@ async def register(regrequest: RegisterRequest, ip: IpDep, is_teacher: IsTeacher
         raise HTTPException(status_code=403, detail=str(e))
 
     if created:
-        await manager.send_to_teacher("users_update", {ip: i.model_dump() for ip, i in convert_to_safe_dict(get_all_users_service()).items()})
+        await manager.send_to_teacher(
+            "users_update",
+            {ip: i.model_dump(by_alias=True) for ip, i in convert_to_safe_dict(get_all_users_service()).items()},
+        )
 
     return UserResponse(is_teacher=False, user=convert_to_safe(user))
 

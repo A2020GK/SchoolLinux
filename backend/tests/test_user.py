@@ -2,8 +2,16 @@ from __future__ import annotations
 
 from typing import Any
 
+import pytest
+
+from backend.app.services import user as user_service
 from backend.app.socket.manager import manager
 from backend.tests.helpers import headers
+
+
+@pytest.fixture(autouse=True)
+def stub_ssh_check(monkeypatch):
+    monkeypatch.setattr(user_service, "check_ip", lambda _ip: True)
 
 
 def test_ping(client):
@@ -30,10 +38,13 @@ def test_user_can_register_and_teacher_gets_update(client, monkeypatch):
     )
 
     assert response.status_code == 200
-    assert response.json() == {"isTeacher": False, "user": {"ip": "10.0.0.11", "score": 0, "kicked": False}}
+    assert response.json() == {
+        "isTeacher": False,
+        "user": {"name": "Alex", "pcName": "pc-01", "score": 0, "kicked": False},
+    }
     assert captured["event"] == "users_update"
-    assert isinstance(captured["data"], list)
-    assert captured["data"][0]["ip"] == "10.0.0.11"
+    assert isinstance(captured["data"], dict)
+    assert "10.0.0.11" in captured["data"]
 
 
 def test_user_can_get_own_profile(client):
@@ -47,7 +58,10 @@ def test_user_can_get_own_profile(client):
     me_response = client.get("/user/me", headers=headers("10.0.0.12"))
 
     assert me_response.status_code == 200
-    assert me_response.json() == {"isTeacher": False, "user": {"ip": "10.0.0.12", "score": 0, "kicked": False}}
+    assert me_response.json() == {
+        "isTeacher": False,
+        "user": {"name": "Alex", "pcName": "pc-01", "score": 0, "kicked": False},
+    }
 
 
 def test_teacher_can_get_all_users(client):
@@ -68,9 +82,9 @@ def test_teacher_can_get_all_users(client):
 
     assert response.status_code == 200
     payload = response.json()
-    assert isinstance(payload, list)
+    assert isinstance(payload, dict)
     assert len(payload) == 2
-    assert {item["ip"] for item in payload} == {"10.0.0.21", "10.0.0.22"}
+    assert set(payload.keys()) == {"10.0.0.21", "10.0.0.22"}
 
 
 def test_teacher_can_kick_and_unkick_user_and_user_gets_updates(client, monkeypatch):

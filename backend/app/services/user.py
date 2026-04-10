@@ -22,7 +22,7 @@ def register_user(request: RegisterRequest, ip: str):
     
     new_user = User(
         name=request.name,
-        pc_name=request.name,
+        pc_name=request.pc_name,
         score=0,
         kicked=False,
         game_data={}

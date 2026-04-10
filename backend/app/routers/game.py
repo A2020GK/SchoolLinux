@@ -28,7 +28,10 @@ async def set_current_game(game_change_request: GameChangeRequest, _: TeacherOnl
     """Set the current game by key."""
     try:
         new = set_current_game_service(**game_change_request.model_dump())
-        await manager.send_to_everyone_except_teacher("game_change", new.model_dump(exclude={"settings_form", "anticheat_required"}))
+        await manager.send_to_everyone_except_teacher(
+            "game_change",
+            new.model_dump(by_alias=True, exclude={"settings_form", "anticheat_required"}),
+        )
         return new
     except ValueError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
