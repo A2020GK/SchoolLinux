@@ -17,13 +17,13 @@ export function onSocketEvent<EventName extends SocketEventName>(
     eventName: EventName,
     handler: ServerToClientEvents[EventName],
 ): () => void {
-    typedSocket.on(eventName, handler);
-    return () => typedSocket.off(eventName, handler);
+    typedSocket.on(eventName, handler as any);
+    return () => typedSocket.off(eventName, handler as any);
 }
 
 export function offSocketEvent<EventName extends SocketEventName>(
     eventName: EventName,
     handler: ServerToClientEvents[EventName],
 ): void {
-    typedSocket.off(eventName, handler);
+    typedSocket.off(eventName, handler as any);
 }
