@@ -22,8 +22,8 @@ export async function setCurrentGame(payload: GameChangeRequest): Promise<GameRe
     return response.data;
 }
 
-export async function getGameState(): Promise<{ state: "idle" | "init" | "running" | "stopped" }> {
-    const response = await api.get<{ state: "idle" | "init" | "running" | "stopped" }>(`${GAME_PREFIX}/state`);
+export async function getGameState(): Promise<{ state: "idle" | "init" | "running" }> {
+    const response = await api.get<{ state: "idle" | "init" | "running" }>(`${GAME_PREFIX}/state`);
     return response.data;
 }
 

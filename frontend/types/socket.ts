@@ -5,7 +5,7 @@ export interface ServerToClientEvents {
     users_update: (users: UsersMap) => void;
     kicked: (payload: KickedEventPayload) => void;
     game_change: (game: GameResponseSafe) => void;
-    game_state_changed: (payload: { state: "idle" | "init" | "running" | "stopped" }) => void;
+    game_state_changed: (payload: { state: "idle" | "init" | "running" }) => void;
 }
 
 export interface ClientToServerEvents {

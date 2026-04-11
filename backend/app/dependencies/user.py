@@ -31,6 +31,6 @@ def teacher_only(is_teacher: bool = Depends(is_teacher)):
     if not is_teacher:
         raise HTTPException(status_code=403, detail="Access forbidden: Teachers only.")
 
-CurrentUserDep = Annotated[User, Depends(get_current_user)]
+CurrentUserDep = Annotated[User | None, Depends(get_current_user)]
 IsTeacherDep = Annotated[bool, Depends(is_teacher)]
 TeacherOnlyDep = Annotated[None, Depends(teacher_only)]

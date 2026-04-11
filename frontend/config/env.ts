@@ -2,7 +2,7 @@ import type { GameResponse } from "../types/game";
 import type { SafeUserData, UserResponse, UsersMap } from "../types/user";
 
 export type MockPreviewScreen = "student-login" | "student-content" | "teacher";
-type MockGameState = "idle" | "init" | "running" | "stopped";
+type MockGameState = "idle" | "init" | "running";
 
 interface MockPreviewConfig {
     enabled: boolean;
@@ -49,7 +49,7 @@ const student: SafeUserData = {
 const currentGame: GameResponse = {
     name: "Поиск клада",
     description: "Найдите скрытый файл с ключом и отправьте его содержимое.",
-    stringSubmission: true,
+    stringSubmission: false,
     requiredUserScore: 5,
     anticheatRequired: false,
     settings: {

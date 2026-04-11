@@ -64,6 +64,16 @@ def test_user_can_get_own_profile(client):
     }
 
 
+def test_unregistered_student_gets_empty_profile(client):
+    me_response = client.get("/user/me", headers=headers("10.0.0.13"))
+
+    assert me_response.status_code == 200
+    assert me_response.json() == {
+        "isTeacher": False,
+        "user": None,
+    }
+
+
 def test_teacher_can_get_all_users(client):
     first = client.post(
         "/user/register",
@@ -116,11 +126,59 @@ def test_teacher_can_kick_and_unkick_user_and_user_gets_updates(client, monkeypa
     )
 
     assert kick_response.status_code == 200
-    assert kick_response.json() is True
+    assert kick_response.json() == {
+        "name": "Alex",
+        "pcName": "pc-01",
+        "score": 0,
+        "kicked": True,
+    }
     assert unkick_response.status_code == 200
-    assert unkick_response.json() is True
+    assert unkick_response.json() == {
+        "name": "Alex",
+        "pcName": "pc-01",
+        "score": 0,
+        "kicked": False,
+    }
 
     assert captured == [
         {"ip": "10.0.0.33", "event": "kicked", "data": {"kicked": True}},
         {"ip": "10.0.0.33", "event": "kicked", "data": {"kicked": False}},
     ]
+
+
+def test_student_can_delete_own_data_and_teacher_gets_update(client, monkeypatch):
+    captured: dict[str, Any] = {}
+
+    async def fake_send_to_teacher(event: str, data: Any) -> bool:
+        captured["event"] = event
+        captured["data"] = data
+        return True
+
+    monkeypatch.setattr(manager, "send_to_teacher", fake_send_to_teacher)
+
+    register_response = client.post(
+        "/user/register",
+        json={"name": "Alex", "pcName": "pc-01"},
+        headers=headers("10.0.0.44"),
+    )
+    assert register_response.status_code == 200
+
+    delete_response = client.delete("/user/me", headers=headers("10.0.0.44"))
+    assert delete_response.status_code == 200
+    assert delete_response.json() == {"deleted": True}
+
+    me_response = client.get("/user/me", headers=headers("10.0.0.44"))
+    assert me_response.status_code == 200
+    assert me_response.json() == {
+        "isTeacher": False,
+        "user": None,
+    }
+
+    assert captured["event"] == "users_update"
+    assert "10.0.0.44" not in captured["data"]
+
+
+def test_teacher_cannot_delete_own_data(client):
+    delete_response = client.delete("/user/me", headers=headers("127.0.0.1"))
+
+    assert delete_response.status_code == 403

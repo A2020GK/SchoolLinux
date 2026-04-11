@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { useUser } from "../contexts/UserContext";
-import { registerUser } from "../api/user";
+import { deleteCurrentUser, registerUser } from "../api/user";
 import { StudentLoginForm } from "./StudentLoginForm";
 import { StudentContent } from "./StudentContent";
+import { notifyError } from "../helpers/notify";
 
 export const Student = () => {
     const { user, refetch } = useUser();
@@ -26,9 +27,18 @@ export const Student = () => {
     };
 
     const handleLogout = async () => {
-        // TODO: Implement logout endpoint in backend
-        // For now, just trigger a refetch
-        await refetch();
+        const confirmed = window.confirm("Выйти из игры и удалить ваши данные на сервере?");
+        if (!confirmed) {
+            return;
+        }
+
+        try {
+            await deleteCurrentUser();
+            await refetch();
+        } catch (err) {
+            notifyError("Не удалось выйти и удалить данные");
+            console.error(err);
+        }
     };
 
     // Show form if not logged in (user is null or doesn't have user data)

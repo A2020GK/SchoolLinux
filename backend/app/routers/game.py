@@ -41,16 +41,17 @@ async def set_current_game(game_change_request: GameChangeRequest, _: TeacherOnl
 
 @router.post("/check")
 async def check(ip: IpDep, submission: Annotated[str, Body()] = ""):
-    """Check a string submission for the current game and return score delta. 
-    Cannot check for kicked users or when no game is selected or state is not running."""
-    from ..state import state
+    """Run game check for the current user and return updated score.
+    For string-based games submission is used, otherwise backend SSH check is executed."""
     from ..services.user import get_all_users
+    from ..schemas.user import SafeUserData
+    
+    convert_to_safe = lambda user: SafeUserData(score=user.score, kicked=user.kicked, name=user.name, pc_name=user.pc_name)
+    convert_to_safe_dict = lambda users: {item_ip: convert_to_safe(item_user) for item_ip, item_user in users.items()}
     
     current_game = get_current_game_service()
     if current_game is None:
         raise HTTPException(status_code=404, detail="No game is currently selected")
-    if not current_game.string_submission:
-        raise HTTPException(status_code=400, detail="Current game does not accept string submissions")
     
     users = get_all_users()
     user = users.get(ip)
@@ -58,20 +59,49 @@ async def check(ip: IpDep, submission: Annotated[str, Body()] = ""):
         raise HTTPException(status_code=404, detail="User not found")
     if user.kicked:
         raise HTTPException(status_code=403, detail="Cannot check for kicked users")
-    
-    score = check_service(ip, submission)
+
+    score_before = user.score
+    score = check_service(ip, submission if current_game.string_submission else "")
+
+    if score != score_before:
+        await manager.send_to_teacher(
+            "users_update",
+            {item_ip: item.model_dump(by_alias=True) for item_ip, item in convert_to_safe_dict(get_all_users()).items()},
+        )
+
     return score
 
 @router.post("/start")
 async def start(_: TeacherOnlyDep):
-    """Start the current game. Sets system state to 'running'."""
+    """Start the current game with state transition idle -> init -> running."""
     from ..state import state
     if state.data.state != "idle":
         raise HTTPException(status_code=409, detail=f"Cannot start game when state is '{state.data.state}'. Only idle games can be started.")
-    result = start_game_service()
+
+    current_game = get_current_game_service()
+    if current_game is None:
+        raise HTTPException(status_code=404, detail="No game is currently selected")
+
+    state.data.state = "init"
+    state.save()
+    await manager.send_to_everyone("game_state_changed", {"state": state.data.state})
+
+    try:
+        result = start_game_service()
+    except ValueError as exc:
+        state.data.state = "idle"
+        state.save()
+        await manager.send_to_everyone("game_state_changed", {"state": state.data.state})
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except Exception as exc:
+        state.data.state = "idle"
+        state.save()
+        await manager.send_to_everyone("game_state_changed", {"state": state.data.state})
+        raise HTTPException(status_code=500, detail="Failed to start game") from exc
+
     state.data.state = "running"
     state.save()
-    await manager.send_to_everyone_except_teacher("game_state_changed", {"state": state.data.state})
+    await manager.send_to_everyone("game_state_changed", {"state": state.data.state})
     return result
 
 @router.post("/stop")
@@ -79,11 +109,16 @@ async def stop(_: TeacherOnlyDep):
     """Stop the current game. Sets system state to 'idle'."""
     from ..state import state
     if state.data.state != "running":
-        raise HTTPException(status_code=409, detail=f"Cannot stop game when state is '{state.data.state}'. Only running games can be stopped.")
-    result = stop_game_service()
+        raise HTTPException(status_code=409, detail=f"Cannot stop game when state is '{state.data.state}'. Only running games can be interrupted.")
+
+    try:
+        result = stop_game_service()
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+
     state.data.state = "idle"
     state.save()
-    await manager.send_to_everyone_except_teacher("game_state_changed", {"state": state.data.state})
+    await manager.send_to_everyone("game_state_changed", {"state": state.data.state})
     return result
 
 @router.get("/state")

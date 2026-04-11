@@ -3,6 +3,7 @@ import type { GameChangeRequest, GameResponse } from "../types/game";
 import { listGames, getCurrentGame, setCurrentGame as setCurrentGameAPI } from "../api/game";
 import { toError } from "../helpers/error";
 import { frontendEnv } from "../config/env";
+import { useUser } from "./UserContext";
 
 export interface ExtendedGameContextValue {
     currentGame: GameResponse | null;
@@ -17,6 +18,7 @@ export interface ExtendedGameContextValue {
 const ExtendedGameContext = createContext<ExtendedGameContextValue | undefined>(undefined);
 
 export const ExtendedGameProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+    const { user } = useUser();
     const [currentGame, setCurrentGameState] = useState<GameResponse | null>(null);
     const [gamesList, setGamesList] = useState<Record<string, GameResponse> | null>(null);
     const [loading, setLoading] = useState(true);
@@ -49,6 +51,12 @@ export const ExtendedGameProvider: React.FC<{ children: React.ReactNode }> = ({ 
             return;
         }
 
+        if (!user?.isTeacher) {
+            setGamesList(null);
+            setError(null);
+            return;
+        }
+
         try {
             setError(null);
             const response = await listGames();
@@ -56,7 +64,7 @@ export const ExtendedGameProvider: React.FC<{ children: React.ReactNode }> = ({ 
         } catch (err) {
             setError(toError(err));
         }
-    }, []);
+    }, [user?.isTeacher]);
 
     const handleSetCurrentGame = useCallback(async (gameKey: string, settings?: Record<string, string | number | boolean>) => {
         if (frontendEnv.mockPreview.enabled) {
@@ -88,8 +96,12 @@ export const ExtendedGameProvider: React.FC<{ children: React.ReactNode }> = ({ 
 
     useEffect(() => {
         fetchCurrentGame();
-        fetchGamesList();
-    }, []);
+        if (user?.isTeacher || frontendEnv.mockPreview.enabled) {
+            fetchGamesList();
+        } else {
+            setGamesList(null);
+        }
+    }, [fetchCurrentGame, fetchGamesList, user?.isTeacher]);
 
     const value: ExtendedGameContextValue = useMemo(() => ({
         currentGame,

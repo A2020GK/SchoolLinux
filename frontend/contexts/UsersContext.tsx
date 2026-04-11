@@ -4,6 +4,7 @@ import { getAllUsers } from "../api/user";
 import { onSocketEvent } from "../api/socket";
 import { toError } from "../helpers/error";
 import { frontendEnv } from "../config/env";
+import { useUser } from "./UserContext";
 
 export interface UsersContextValue {
     users: UsersMap | null;
@@ -16,6 +17,7 @@ export interface UsersContextValue {
 const UsersContext = createContext<UsersContextValue | undefined>(undefined);
 
 export const UsersProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+    const { user } = useUser();
     const [users, setUsers] = useState<UsersMap | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<Error | null>(null);
@@ -41,6 +43,13 @@ export const UsersProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }, []);
 
     useEffect(() => {
+        if (!user?.isTeacher) {
+            setUsers(null);
+            setError(null);
+            setLoading(false);
+            return;
+        }
+
         fetchUsers();
 
         if (frontendEnv.mockPreview.enabled) {
@@ -53,7 +62,7 @@ export const UsersProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         });
 
         return () => unsubscribe();
-    }, []);
+    }, [fetchUsers, user?.isTeacher]);
 
     const handleUpdateUserKicked = useCallback((ip: string, kicked: boolean) => {
         setUsers((prevUsers) => {

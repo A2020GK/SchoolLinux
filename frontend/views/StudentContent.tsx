@@ -9,6 +9,8 @@ import {
     faArrowUpFromBracket,
     faRightFromBracket,
 } from "@fortawesome/free-solid-svg-icons";
+import { checkGame } from "../api/game";
+import { useUser } from "../contexts/UserContext";
 import { notifyError, notifyInfo } from "../helpers/notify";
 import "../styles/student.css";
 
@@ -18,20 +20,28 @@ interface StudentContentProps {
 }
 
 export const StudentContent = ({ user, onLogout }: StudentContentProps) => {
-    const { game, loading } = useGame();
+    const { game, gameState, loading } = useGame();
+    const { refetch: refetchUser } = useUser();
     const [submission, setSubmission] = useState("");
     const [submitting, setSubmitting] = useState(false);
 
     const handleSubmission = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        if (!game?.stringSubmission || !submission.trim()) return;
+        if (!game) return;
+        if (game.stringSubmission && !submission.trim()) return;
+        if (user.kicked) {
+            notifyInfo("Вы были отключены преподавателем");
+            return;
+        }
+        if (gameState !== "running") {
+            notifyInfo("Сейчас проверка недоступна: игра не запущена");
+            return;
+        }
 
         setSubmitting(true);
         try {
-            // TODO: Implement submission endpoint when available in backend
-            // For now, just show the submission UI
-            console.log("Submission:", submission);
-            notifyInfo("Игра еще не реализована полностью");
+            await checkGame(game.stringSubmission ? submission.trim() : "");
+            await refetchUser();
         } catch (error) {
             notifyError("Ошибка при отправке");
             console.error(error);
@@ -63,28 +73,39 @@ export const StudentContent = ({ user, onLogout }: StudentContentProps) => {
                         <h3>{game.name}</h3>
                         <p>{game.description}</p>
 
-                        {game.stringSubmission ? (
-                            <form onSubmit={handleSubmission} className="submission-form">
-                                <label htmlFor="answer">
-                                    <FontAwesomeIcon icon={faGem} /> Ответ:
-                                </label>
-                                <div className="form-row">
-                                    <input
-                                        id="answer"
-                                        type="text"
-                                        value={submission}
-                                        onChange={(e) => setSubmission(e.target.value)}
-                                        placeholder="Введите ответ"
-                                        disabled={submitting || loading}
-                                        required
-                                    />
-                                    <button type="submit" disabled={submitting || loading}>
-                                        <FontAwesomeIcon icon={faArrowUpFromBracket} /> Отправить
+                        <form onSubmit={handleSubmission} className="submission-form">
+                            {game.stringSubmission ? (
+                                <>
+                                    <label htmlFor="answer">
+                                        <FontAwesomeIcon icon={faGem} /> Ответ:
+                                    </label>
+                                    <div className="form-row">
+                                        <input
+                                            id="answer"
+                                            type="text"
+                                            value={submission}
+                                            onChange={(e) => setSubmission(e.target.value)}
+                                            placeholder="Введите ответ"
+                                            disabled={submitting || loading || gameState !== "running" || user.kicked}
+                                            required
+                                        />
+                                        <button type="submit" disabled={submitting || loading || gameState !== "running" || user.kicked}>
+                                            <FontAwesomeIcon icon={faArrowUpFromBracket} /> Проверить
+                                        </button>
+                                    </div>
+                                </>
+                            ) : (
+                                <>
+                                    <p className="info-text">Проверка выполняется через SSH</p>
+                                    <button type="submit" disabled={submitting || loading || gameState !== "running" || user.kicked}>
+                                        <FontAwesomeIcon icon={faArrowUpFromBracket} /> Проверить
                                     </button>
-                                </div>
-                            </form>
-                        ) : (
-                            <p className="info-text">Проверка выполняется автоматически через SSH</p>
+                                </>
+                            )}
+                        </form>
+
+                        {user.kicked && (
+                            <p className="info-text">Ваш доступ временно ограничен преподавателем</p>
                         )}
                     </div>
                 ) : (

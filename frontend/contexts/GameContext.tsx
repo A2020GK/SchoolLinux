@@ -1,11 +1,11 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import type { GameResponseSafe } from "../types/game";
-import { getCurrentGame } from "../api/game";
+import { getCurrentGame, getGameState } from "../api/game";
 import { onSocketEvent } from "../api/socket";
 import { toError } from "../helpers/error";
 import { frontendEnv } from "../config/env";
 
-export type GameState = "idle" | "init" | "running" | "stopped";
+export type GameState = "idle" | "init" | "running";
 
 export interface GameContextValue {
     game: GameResponseSafe | null;
@@ -35,8 +35,12 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         try {
             setLoading(true);
             setError(null);
-            const response = await getCurrentGame();
-            setGame(response);
+            const [gameResponse, stateResponse] = await Promise.all([
+                getCurrentGame(),
+                getGameState(),
+            ]);
+            setGame(gameResponse);
+            setGameState(stateResponse.state);
         } catch (err) {
             setError(toError(err));
         } finally {
@@ -65,7 +69,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
             unsubscribe1();
             unsubscribe2();
         };
-    }, []);
+    }, [fetchGame]);
 
     const value: GameContextValue = useMemo(() => ({
         game,

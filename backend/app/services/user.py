@@ -44,3 +44,11 @@ def set_kicked(ip: str, kicked: bool):
         state.save()
         return True
     return False
+
+
+def delete_user(ip: str) -> bool:
+    user = state.data.users.pop(ip, None)
+    if user is None:
+        return False
+    state.save()
+    return True

@@ -28,5 +28,10 @@ export async function setUserKicked(ip: string, kicked: boolean): Promise<SafeUs
 	return response.data;
 }
 
+export async function deleteCurrentUser(): Promise<{ deleted: boolean }> {
+	const response = await api.delete<{ deleted: boolean }>(`${USER_PREFIX}/me`);
+	return response.data;
+}
+
 export type { RegisterRequest, SafeUserData, UserResponse, UsersMap };
 

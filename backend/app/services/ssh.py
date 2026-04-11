@@ -6,17 +6,25 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-def create_client(hostname, username, password):
+def create_client(hostname, username, password, timeout: float):
     client = SSHClient()
     client.set_missing_host_key_policy(AutoAddPolicy())
-    client.connect(hostname, username=username, password=password)
+    client.connect(
+        hostname,
+        username=username,
+        password=password,
+        timeout=timeout,
+        auth_timeout=timeout,
+        banner_timeout=timeout,
+    )
     return client
 
 def create_client_from_config(ip: str):
     return create_client(
         ip,
         config.ssh_user,
-        config.ssh_password
+        config.ssh_password,
+        config.ssh_timeout,
     )
     
 def execute_command(client: SSHClient, command: str):

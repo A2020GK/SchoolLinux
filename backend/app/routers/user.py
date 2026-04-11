@@ -1,8 +1,8 @@
-from fastapi import APIRouter, Body, HTTPException, Request
+from fastapi import APIRouter, Body, HTTPException
 from typing import Annotated
 from backend.app.schemas.user import RegisterRequest, UserResponse, SafeUserData
 from backend.app.dependencies.user import TeacherOnlyDep, CurrentUserDep, IpDep, IsTeacherDep
-from backend.app.services.user import register_user, get_all_users as get_all_users_service, set_kicked
+from backend.app.services.user import register_user, get_all_users as get_all_users_service, set_kicked, delete_user
 from backend.app.socket.manager import manager
 
 router = APIRouter(prefix="/user", tags=["User"])
@@ -39,7 +39,27 @@ async def get_current_user(user: CurrentUserDep, is_teacher: IsTeacherDep) -> Us
     """Get the current user's information based on their IP address."""
     if is_teacher:
         return UserResponse(is_teacher=True, user=None)
+
+    if user is None:
+        return UserResponse(is_teacher=False, user=None)
+
     return UserResponse(is_teacher=False, user=convert_to_safe(user))
+
+
+@router.delete("/me")
+async def delete_current_user(ip: IpDep, is_teacher: IsTeacherDep) -> dict[str, bool]:
+    """Delete current student's data from state and notify teacher list view."""
+    if is_teacher:
+        raise HTTPException(status_code=403, detail="Teachers cannot delete account data")
+
+    deleted = delete_user(ip)
+    if deleted:
+        await manager.send_to_teacher(
+            "users_update",
+            {item_ip: item.model_dump(by_alias=True) for item_ip, item in convert_to_safe_dict(get_all_users_service()).items()},
+        )
+
+    return {"deleted": deleted}
 
 @router.post("/kick/{ip}")
 async def kick_user(ip: str, kicked: Annotated[bool, Body()], _: TeacherOnlyDep) -> SafeUserData:
@@ -54,4 +74,3 @@ async def kick_user(ip: str, kicked: Annotated[bool, Body()], _: TeacherOnlyDep)
     
     await manager.send_to_ip(ip, "kicked", {"kicked": kicked})
     return convert_to_safe(user)
-    return success

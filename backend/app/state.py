@@ -20,7 +20,7 @@ def _is_valid_game_key(value: str) -> bool:
 
 class AppData(BaseSchema):
     current_game: str | None = None
-    state: Literal["idle", "init", "running", "stopped"] = "idle"
+    state: Literal["idle", "init", "running"] = "idle"
     games: dict[str, GamePersistedState] = Field(default_factory=dict)
 
     users: dict[str, User] = Field(default_factory=dict)

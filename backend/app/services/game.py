@@ -20,6 +20,13 @@ games: dict[str, Game] = {}
 def _game_to_response(game: Game) -> GameResponse:
     return GameResponse.model_validate(game.model_dump(exclude={"default_game_data"}))
 
+
+def _close_client_safely(client, ip: str) -> None:
+    try:
+        client.close()
+    except Exception as exc:
+        logger.warning("Failed to close SSH client for %s: %s", ip, exc)
+
 def discover_and_load_games() -> None:
     games_dir = Path("backend/app/games")
     games.clear()
@@ -124,29 +131,43 @@ def start_game() -> None:
     # 4. Call game.install for all users
     # 5. Set system state to "run"
     current_game = get_current_game()
+    if current_game is None:
+        raise ValueError("No game is currently selected")
+
     for ip, user in get_all_users().items():
         user.game_data = current_game.new_game_data()
-        
+
+        client = None
         try:
             logger.info("Installing game for user %s (%s)", user.name, ip)
             client = create_client_from_config(ip)
             current_game.install(client, user.game_data)
-            
+
         except Exception as exc:
             logger.error("Failed to install game for user %s (%s): %s", user.name, ip, exc, exc_info=True)
-        
+        finally:
+            if client is not None:
+                _close_client_safely(client, ip)
+
     state.save()
 
 def stop_game() -> None:
     current_game = get_current_game()
+    if current_game is None:
+        raise ValueError("No game is currently selected")
+
     for ip, user in get_all_users().items():
+        client = None
         try:
             logger.info("Uninstalling game for user %s (%s)", user.name, ip)
             client = create_client_from_config(ip)
             current_game.uninstall(client, user.game_data)
-            
+
         except Exception as exc:
             logger.error("Failed to uninstall game for user %s (%s): %s", user.name, ip, exc, exc_info=True)
+        finally:
+            if client is not None:
+                _close_client_safely(client, ip)
     state.save()
     
 def check(ip, submission: str = "") -> int:
@@ -155,16 +176,26 @@ def check(ip, submission: str = "") -> int:
     if user is None:
         logger.warning("Check called for unknown user with IP %s", ip)
         return 0
+
+    if current_game is None:
+        logger.warning("Check called while no game is selected for user %s (%s)", user.name, ip)
+        return user.score
     
     try:
-        client = create_client_from_config(ip)
         if current_game.string_submission:
             user.score += current_game.check_string_submission(submission, user.game_data)
         else:
-            user.score = current_game.check(client, user.game_data)
+            client = None
+            try:
+                client = create_client_from_config(ip)
+                user.score = current_game.check(client, user.game_data)
+            finally:
+                if client is not None:
+                    _close_client_safely(client, ip)
 
         logger.info("Checked game for user %s (%s), new score: %d", user.name, ip, user.score)
         state.save()
         return user.score
     except Exception as exc:
         logger.error("Failed to check game for user %s (%s): %s", user.name, ip, exc, exc_info=True)
+        return user.score

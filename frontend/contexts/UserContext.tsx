@@ -1,6 +1,7 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import type { UserResponse } from "../types/user";
 import { getCurrentUser } from "../api/user";
+import { onSocketEvent } from "../api/socket";
 import { toError } from "../helpers/error";
 import { frontendEnv, getMockUserResponse } from "../config/env";
 
@@ -40,7 +41,29 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     useEffect(() => {
         fetchUser();
-    }, []);
+
+        if (frontendEnv.mockPreview.enabled) {
+            return;
+        }
+
+        const unsubscribeKicked = onSocketEvent("kicked", (payload) => {
+            setUser((prevUser) => {
+                if (!prevUser?.user) {
+                    return prevUser;
+                }
+
+                return {
+                    ...prevUser,
+                    user: {
+                        ...prevUser.user,
+                        kicked: payload.kicked,
+                    },
+                };
+            });
+        });
+
+        return () => unsubscribeKicked();
+    }, [fetchUser]);
 
     const value: UserContextValue = useMemo(() => ({
         user,
