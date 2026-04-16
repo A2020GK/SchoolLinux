@@ -58,14 +58,10 @@ class HideGame(Game):
         game_data["completed"] = False
     
     def check(self, client, game_data):
-        if game_data.get("completed"):
-            return self.required_user_score
-
         treasures_amount = int(self.settings["treasures_amount"])
         stubs_amount = int(self.settings["stubs"])
         allow_empty_stubs = bool(self.settings["allow_empty_stubs"])
         allow_root_treasures = bool(self.settings["allow_root_treasures"])
-        root_folders = int(self.settings["root_folders"])
         depth_folders = int(self.settings["depth_folders"])
         depth = int(self.settings["depth"])
 
@@ -113,25 +109,37 @@ echo "deep_root_dirs=$deep_root_dirs"
         files = metrics.get("files", 0)
         empty_files = metrics.get("empty_files", 0)
         root_treasures = metrics.get("root_treasures", 0)
-        root_dirs = metrics.get("root_dirs", 0)
         deep_root_dirs = metrics.get("deep_root_dirs", 0)
         stubs = max(0, files - treasures)
 
-        if treasures != treasures_amount:
-            return 0
-        if stubs < stubs_amount:
-            return 0
-        if not allow_empty_stubs and empty_files > 0:
-            return 0
-        if not allow_root_treasures and root_treasures > 0:
-            return 0
-        if root_dirs != root_folders:
-            return 0
-        if deep_root_dirs < depth_folders:
-            return 0
+        score = 10.0
 
-        game_data["completed"] = True
-        return self.required_user_score
+        t_diff = abs(treasures - treasures_amount)
+        if t_diff == 1:
+            score -= 2
+        elif t_diff >= 2:
+            score -= 4
+
+        missing_stubs = max(0, stubs_amount - stubs)
+        if missing_stubs == 1:
+            score -= 2
+        elif missing_stubs >= 2:
+            score -= 5
+
+        if deep_root_dirs < depth_folders:
+            score -= 1
+
+        if not allow_empty_stubs and empty_files > 0:
+            score -= empty_files * 1.0
+        if not allow_root_treasures and root_treasures > 0:
+            score -= root_treasures * 1.0
+
+        final_score = int(max(0, min(10, round(score))))
+
+        if final_score >= 8:
+            game_data["completed"] = True
+
+        return final_score
     
     def uninstall(self, client, game_data):
         execute_command(client, 'rm -rf "$HOME/Game"')
