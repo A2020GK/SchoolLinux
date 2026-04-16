@@ -104,7 +104,7 @@ echo "deep_root_dirs=$deep_root_dirs"
             if not value.isdigit():
                 continue
             metrics[key] = int(value)
-
+            
         treasures = metrics.get("treasures", 0)
         files = metrics.get("files", 0)
         empty_files = metrics.get("empty_files", 0)
@@ -113,20 +113,45 @@ echo "deep_root_dirs=$deep_root_dirs"
         deep_root_dirs = metrics.get("deep_root_dirs", 0)
         stubs = max(0, files - treasures)
 
-        if treasures != treasures_amount:
-            return 0
-        if stubs < stubs_amount:
-            return 0
+        # ================== РАСЧЁТ БАЛЛОВ ==================
+        
+        # 1. Клады (макс. 4 балла) — нелинейная шкала: отклонение на 1 = -1 балл, на 2 = -4 балла
+        treasure_diff = abs(treasures - treasures_amount)
+        treasure_points = max(0, 4 - treasure_diff ** 2)
+        
+        # 2. Заглушки (макс. 3 балла) — пороговая система: если меньше 50% от нормы, баллов нет
+        stub_threshold = stubs_amount * 0.5
+        if stubs >= stubs_amount:
+            stub_points = 3
+        elif stubs >= stub_threshold:
+            stub_points = 1.5
+        else:
+            stub_points = 0
+            
+        # 3. Структура (макс. 2.5 балла)
+        structure_points = 0
+        # Папок в корне ДОЛЖНО БЫТЬ НЕ МЕНЬШЕ нормы (избыток не штрафуется)
+        if root_dirs >= root_folders:
+            structure_points += 1.5
+        # Глубина: проверяем, достигнута ли требуемая глубина хотя бы для нужного количества веток
+        if deep_root_dirs >= depth_folders and depth_folders > 0:
+            structure_points += 1.0
+            
+        # 4. Штрафные множители (мультипликативные)
+        penalty = 1.0
+        # Пустые файлы (если запрещены): каждый пустой файл снижает оценку на 10%
         if not allow_empty_stubs and empty_files > 0:
-            return 0
+            penalty *= 0.9 ** empty_files
+        # Клады в корне (если запрещены): каждый такой клад снижает оценку на 15%
         if not allow_root_treasures and root_treasures > 0:
-            return 0
-        if root_dirs != root_folders:
-            return 0
-        if deep_root_dirs < depth_folders:
-            return 0
-
-        return self.required_user_score
+            penalty *= 0.85 ** root_treasures
+            
+        # 5. Финальный расчёт
+        base_score = treasure_points + stub_points + structure_points  # макс. 9.5
+        raw_score = base_score * penalty
+        final_score = min(10, max(0, round(raw_score)))
+            
+        return final_score
     
     def uninstall(self, client, game_data):
         execute_command(client, 'rm -rf "$HOME/Game"')
