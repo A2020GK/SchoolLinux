@@ -55,12 +55,8 @@ class HideGame(Game):
     """
 
         upload_and_run_script(client, "hide_game_install", script)
-        game_data["completed"] = False
     
     def check(self, client, game_data):
-        if game_data.get("completed"):
-            return self.required_user_score
-
         treasures_amount = int(self.settings["treasures_amount"])
         stubs_amount = int(self.settings["stubs"])
         allow_empty_stubs = bool(self.settings["allow_empty_stubs"])
@@ -130,7 +126,6 @@ echo "deep_root_dirs=$deep_root_dirs"
         if deep_root_dirs < depth_folders:
             return 0
 
-        game_data["completed"] = True
         return self.required_user_score
     
     def uninstall(self, client, game_data):

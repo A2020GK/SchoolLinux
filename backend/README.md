@@ -217,8 +217,7 @@ All schemas inherit `BaseSchema`:
   - root-level treasures
   - root directory count
   - count of root dirs with required depth
-- Validates metrics against settings; on success sets `game_data["completed"]=True` and returns `required_user_score`.
-- Subsequent checks return full score once completed.
+- Validates metrics against settings and returns `required_user_score` on success.
 
 ### `test.py` (`TestGame`)
 - Simple diagnostics game.
