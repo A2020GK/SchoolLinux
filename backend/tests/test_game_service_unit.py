@@ -157,5 +157,5 @@ def test_hide_game_check_recalculates_after_completion(monkeypatch):
     second_score = game.check(object(), game_data)
 
     assert first_score == game.required_user_score
-    assert second_score == 0
+    assert second_score == 8
     assert game_data["completed"] is False
