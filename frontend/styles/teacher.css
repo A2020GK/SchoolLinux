@@ -330,6 +330,11 @@
     color: var(--accent-strong);
 }
 
+.game-state.stopped {
+    background-color: rgba(255, 68, 68, 0.2);
+    color: #ff6666;
+}
+
 /* Controls Section */
 .controls-section {
     display: flex;
