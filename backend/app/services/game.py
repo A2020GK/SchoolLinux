@@ -135,6 +135,7 @@ def start_game() -> None:
         raise ValueError("No game is currently selected")
 
     for ip, user in get_all_users().items():
+        user.score = 0
         user.game_data = current_game.new_game_data()
 
         client = None

@@ -9,6 +9,8 @@ from ..schemas.game import GameResponse, GameChangeRequest, GameResponseSafe
 from backend.app.socket import manager
 from typing import Annotated
 from backend.app.dependencies.user import TeacherOnlyDep, IsTeacherDep, IpDep
+from ..services.user import get_all_users
+from ..schemas.user import SafeUserData
 
 router = APIRouter(prefix="/game", tags=["Game"])
 
@@ -102,6 +104,19 @@ async def start(_: TeacherOnlyDep):
     state.data.state = "running"
     state.save()
     await manager.send_to_everyone("game_state_changed", {"state": state.data.state})
+
+    await manager.send_to_teacher(
+        "users_update",
+        {
+            item_ip: SafeUserData(
+                score=item_user.score,
+                kicked=item_user.kicked,
+                name=item_user.name,
+                pc_name=item_user.pc_name,
+            ).model_dump(by_alias=True)
+            for item_ip, item_user in get_all_users().items()
+        },
+    )
     return result
 
 @router.post("/stop")
