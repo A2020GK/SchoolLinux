@@ -41,12 +41,32 @@ def check_ip(ip: str) -> bool:
         return False
 
 def upload_and_run_script(client: SSHClient, name: str, script: str):
-    logger.info(f"Uploading script {name} to ip {client.get_transport().getpeername()[0]}")
+    ip = client.get_transport().getpeername()[0]
+    logger.info(f"Uploading script {name} to ip {ip}")
     sftp = client.open_sftp()
     remote_path = f"/tmp/{name}.sh"
     with sftp.file(remote_path, "w") as remote_file:
         remote_file.write(script)
     sftp.chmod(remote_path, 0o755)
-    stdin, stdout, stderr= client.exec_command(f"bash {remote_path}")
-    logger.info(f"Script {name} executed on ip {client.get_transport().getpeername()[0]}")
-    return stdout, stderr
+    _, stdout, stderr = client.exec_command(f"bash {remote_path}")
+
+    # Wait for completion before returning. Otherwise caller may close SSH client
+    # and terminate script in the middle, producing partial game files.
+    exit_code = stdout.channel.recv_exit_status()
+    stdout_text = stdout.read().decode("utf-8", errors="replace")
+    stderr_text = stderr.read().decode("utf-8", errors="replace")
+
+    if exit_code != 0:
+        logger.error(
+            "Script %s failed on ip %s with exit code %s. stderr: %s",
+            name,
+            ip,
+            exit_code,
+            stderr_text.strip(),
+        )
+        raise RuntimeError(
+            f"Script {name} failed on {ip} with exit code {exit_code}: {stderr_text.strip() or stdout_text.strip()}"
+        )
+
+    logger.info(f"Script {name} executed on ip {ip}")
+    return stdout_text, stderr_text

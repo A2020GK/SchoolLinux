@@ -89,10 +89,12 @@ class FindGame(Game):
     def _normalize_hidden_klads(game_data: dict[str, Any]) -> set[str]:
         raw_hidden = game_data.get("hidden_klads", set())
 
-        if isinstance(raw_hidden, set):
-            normalized = {str(item) for item in raw_hidden}
-        elif isinstance(raw_hidden, (list, tuple)):
-            normalized = {str(item) for item in raw_hidden}
+        if isinstance(raw_hidden, (set, list, tuple)):
+            normalized: set[str] = set()
+            for item in raw_hidden:
+                normalized_item = FindGame._normalize_submission(str(item))
+                if normalized_item:
+                    normalized.add(normalized_item)
         else:
             normalized = set()
 
@@ -100,11 +102,27 @@ class FindGame(Game):
         return normalized
 
     def _generate_treasure_patterns(self, words: list[str], treasures_amount: int) -> list[str]:
-        patterns: set[str] = set()
+        unique_words = list(dict.fromkeys(words))
+        if len(unique_words) < 3:
+            raise ValueError("Find game requires at least 3 unique words in words.txt")
 
-        while len(patterns) < treasures_amount:
-            three_words = " ".join(random.sample(words, 3))
+        max_unique_patterns = len(unique_words) * (len(unique_words) - 1) * (len(unique_words) - 2)
+        if treasures_amount > max_unique_patterns:
+            raise ValueError(
+                f"Cannot generate {treasures_amount} unique treasures from {len(unique_words)} unique words"
+            )
+
+        patterns: set[str] = set()
+        attempts = 0
+        max_attempts = max(200, treasures_amount * 50)
+
+        while len(patterns) < treasures_amount and attempts < max_attempts:
+            attempts += 1
+            three_words = " ".join(random.sample(unique_words, 3))
             patterns.add(f"klad:{three_words}")
+
+        if len(patterns) < treasures_amount:
+            raise ValueError("Failed to generate unique treasure patterns with the current dictionary")
 
         return list(patterns)
 
@@ -125,8 +143,11 @@ class FindGame(Game):
 
         files: list[dict[str, Any]] = []
         used_paths: set[str] = set()
+        random_path_attempts = 0
+        max_random_path_attempts = max(200, files_amount * 30)
 
-        while len(files) < files_amount:
+        while len(files) < files_amount and random_path_attempts < max_random_path_attempts:
+            random_path_attempts += 1
             depth = random.randint(1, max_depth)
             dirs = [self._mkname(words) for _ in range(depth)]
             filename = f"{self._mkname(words)}.txt"
@@ -138,6 +159,46 @@ class FindGame(Game):
             used_paths.add(rel_path)
 
             is_treasure_file = len(files) in treasure_positions
+            treasure_line = None
+
+            if is_treasure_file:
+                treasure_line = shuffled_klads[next_klad_idx]
+                next_klad_idx += 1
+
+            lines: list[str] = []
+            if treasure_line is not None:
+                lines.append(treasure_line)
+                for _ in range(content_lines - 1):
+                    lines.append(self._mkline(words))
+            else:
+                for _ in range(content_lines):
+                    lines.append(self._mkline(words))
+
+            should_gzip = random.randint(1, 100) <= gzip_percent
+
+            files.append(
+                {
+                    "rel_path": rel_path,
+                    "lines": lines,
+                    "is_treasure": is_treasure_file,
+                    "gzip": should_gzip,
+                }
+            )
+
+        # Fallback to deterministic names if random generator cannot produce enough unique paths.
+        while len(files) < files_amount:
+            file_index = len(files)
+            depth = (file_index % max_depth) + 1
+            dirs = [f"generated_{file_index}_{level}" for level in range(depth)]
+            filename = f"generated_file_{file_index}.txt"
+            rel_path = "/".join(dirs + [filename])
+
+            if rel_path in used_paths:
+                continue
+
+            used_paths.add(rel_path)
+
+            is_treasure_file = file_index in treasure_positions
             treasure_line = None
 
             if is_treasure_file:
@@ -187,7 +248,9 @@ class FindGame(Game):
             script_lines.append("EOF_FIND")
 
             if file_meta["gzip"]:
-                script_lines.append(f"gzip -f \"$ROOT/{rel_path}\"")
+                script_lines.append("if command -v gzip >/dev/null 2>&1; then")
+                script_lines.append(f"  gzip -f \"$ROOT/{rel_path}\"")
+                script_lines.append("fi")
 
             script_lines.append("")
 
@@ -195,7 +258,7 @@ class FindGame(Game):
         upload_and_run_script(client, SCRIPT_NAME, script_content)
 
         game_data["hidden_klads"] = set(klad_patterns)
-        pass
+
     def check_string_submission(self, submission, game_data):
         hidden_klads = self._normalize_hidden_klads(game_data)
         normalized_submission = self._normalize_submission(submission)
