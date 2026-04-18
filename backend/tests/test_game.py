@@ -132,6 +132,7 @@ def test_start_sets_running_and_stop_returns_to_idle(client):
 
 def test_start_emits_users_update_with_reset_scores(client, monkeypatch):
     sent: dict[str, Any] = {}
+    student_updates: list[tuple[str, str, Any]] = []
     ip = "10.0.0.52"
 
     state.data.users[ip] = User(name="Alex", pc_name="pc-03", score=11, kicked=False, game_data={})
@@ -144,12 +145,17 @@ def test_start_emits_users_update_with_reset_scores(client, monkeypatch):
         sent["data"] = data
         return True
 
+    async def fake_send_to_ip(target_ip: str, event: str, data: Any) -> bool:
+        student_updates.append((target_ip, event, data))
+        return True
+
     def fake_start_service() -> None:
         for user in state.data.users.values():
             user.score = 0
 
     monkeypatch.setattr(manager, "send_to_everyone", fake_send_to_everyone)
     monkeypatch.setattr(manager, "send_to_teacher", fake_send_to_teacher)
+    monkeypatch.setattr(manager, "send_to_ip", fake_send_to_ip)
     monkeypatch.setattr(game_router, "start_game_service", fake_start_service)
 
     set_response = client.post(
@@ -164,6 +170,7 @@ def test_start_emits_users_update_with_reset_scores(client, monkeypatch):
     assert start_response.status_code == 200
     assert sent["event"] == "users_update"
     assert sent["data"][ip]["score"] == 0
+    assert (ip, "user_update", sent["data"][ip]) in student_updates
 
 
 def test_start_transitions_through_init_before_running(client, monkeypatch):

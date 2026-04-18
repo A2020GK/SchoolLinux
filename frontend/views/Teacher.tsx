@@ -27,6 +27,29 @@ import {
 import "react-data-grid/lib/styles.css";
 import "../styles/teacher.css";
 
+const escapeCsvField = (value: string | number | boolean): string => {
+    const text = String(value).replace(/"/g, '""');
+    return `"${text}"`;
+};
+
+const formatDateForFilename = (date: Date): string => {
+    const pad = (value: number) => String(value).padStart(2, "0");
+    return `${date.getFullYear()}${pad(date.getMonth() + 1)}${pad(date.getDate())}-${pad(date.getHours())}${pad(date.getMinutes())}${pad(date.getSeconds())}`;
+};
+
+const slugifyGameType = (raw: string | undefined): string => {
+    if (!raw) {
+        return "unknown";
+    }
+
+    const slug = raw
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-+|-+$/g, "");
+
+    return slug || "unknown";
+};
+
 interface StudentRow {
     ip: string;
     pcName: string;
@@ -35,18 +58,16 @@ interface StudentRow {
     kicked: boolean;
 }
 
-const ActionFormatter = ({ row, onKick, onRestore, gameRunning }: { 
+const ActionFormatter = ({ row, onKick, onRestore }: {
     row: StudentRow
     onKick: (ip: string) => void
     onRestore: (ip: string) => void
-    gameRunning: boolean
 }) => (
     row.kicked ? (
         <button
             className="restore-btn"
             onClick={() => onRestore(row.ip)}
-            disabled={gameRunning}
-            title={gameRunning ? "Невозможно восстановить во время игры" : "Восстановить ученика"}
+            title="Восстановить ученика"
         >
             <FontAwesomeIcon icon={faPersonCircleCheck} /> Восстановить
         </button>
@@ -54,8 +75,7 @@ const ActionFormatter = ({ row, onKick, onRestore, gameRunning }: {
         <button
             className="kick-btn"
             onClick={() => onKick(row.ip)}
-            disabled={gameRunning}
-            title={gameRunning ? "Невозможно изгнать во время игры" : "Изгнать ученика"}
+            title="Изгнать ученика"
         >
             <FontAwesomeIcon icon={faPersonCircleMinus} /> Изгнать
         </button>
@@ -128,6 +148,10 @@ export const Teacher = () => {
     const [sortColumns, setSortColumns] = useState<readonly SortColumn[]>([]);
     const [startStopLoading, setStartStopLoading] = useState(false);
     const [settingsChanges, setSettingsChanges] = useState<Record<string, string | number | boolean>>({});
+
+    const currentGameKey = currentGame
+        ? Object.keys(gamesList || {}).find((key) => gamesList?.[key]?.name === currentGame.name) || undefined
+        : undefined;
 
     const rows: StudentRow[] = useMemo(() => {
         if (!users) return [];
@@ -250,6 +274,7 @@ export const Teacher = () => {
         try {
             setStartStopLoading(true);
             await stopGame();
+            handleDownloadCsv();
         } catch (error) {
             if ((error as any).response?.status === 409) {
                 notifyWarning("Не можно остановить неработающую игру.");
@@ -260,6 +285,44 @@ export const Teacher = () => {
         } finally {
             setStartStopLoading(false);
         }
+    };
+
+    const handleDownloadCsv = () => {
+        if (sortedRows.length === 0) {
+            notifyWarning("Нет данных для экспорта");
+            return;
+        }
+
+        const header = ["IP", "Компьютер", "Имя", "Очки", "Изгнан"];
+        const lines = [
+            header.join(","),
+            ...sortedRows.map((row) => [
+                escapeCsvField(row.ip),
+                escapeCsvField(row.pcName),
+                escapeCsvField(row.name),
+                escapeCsvField(row.score),
+                escapeCsvField(row.kicked ? "Да" : "Нет"),
+            ].join(",")),
+        ];
+
+        if (currentGame) {
+            lines.push("");
+            lines.push(escapeCsvField(`Максимум очков: ${currentGame.requiredUserScore}`));
+        }
+
+        const csvContent = lines.join("\n");
+        const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+        const fileName = `SL3-${slugifyGameType(currentGameKey || currentGame?.name)}-${formatDateForFilename(new Date())}.csv`;
+
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.setAttribute("download", fileName);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+        notifySuccess("Таблица результатов скачана");
     };
 
     const columns: readonly Column<StudentRow>[] = [
@@ -296,7 +359,6 @@ export const Teacher = () => {
                     row={props.row as StudentRow}
                     onKick={handleKick}
                     onRestore={handleRestore}
-                    gameRunning={gameState === "running"}
                 />
             ),
             resizable: true,
@@ -328,14 +390,22 @@ export const Teacher = () => {
                     />
                 </div>
 
+                {currentGame && (
+                    <p className="required-score-footer">Требуемый счёт {currentGame.requiredUserScore}</p>
+                )}
+
+                <div className="table-actions">
+                    <button className="export-btn" onClick={handleDownloadCsv}>
+                        Экспорт CSV
+                    </button>
+                </div>
+
                 <div className="controls-section">
                     <div className="game-selector">
                         <label htmlFor="game-select">Текущая игра:</label>
                         <select
                             id="game-select"
-                            value={currentGame ? Object.keys(gamesList || {}).find(
-                                (key) => gamesList?.[key]?.name === currentGame.name
-                            ) || "" : ""}
+                            value={currentGameKey || ""}
                             onChange={(e) => e.target.value && handleGameChange(e.target.value)}
                             disabled={gameState === "running"}
                             className={gameState === "running" ? "disabled" : ""}

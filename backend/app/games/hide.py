@@ -2,7 +2,7 @@ from backend.app.games import Game, GameSettingsItem, execute_command, upload_an
 
 class HideGame(Game):
     name:str = "Прятание кладов"
-    description:str = "Ученики прячут клады в соответствии с заданием"
+    description:str = "Спрячьте клады на машине. Клады - это строки в файлах, которые начинаются со слова \"klad:\". Используйте папку Game в домашнем каталоге пользователя. Следуйте инструкциям учителя."
     
     string_submission: bool = False
     anticheat_required: bool = True

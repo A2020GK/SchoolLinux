@@ -68,6 +68,10 @@ export const StudentContent = ({ user, onLogout }: StudentContentProps) => {
                     </div>
                 </div>
 
+                {game && (
+                    <p className="required-score-info">Требуемый счёт: {game.requiredUserScore}</p>
+                )}
+
                 {game ? (
                     <div className="game-section">
                         <h3>{game.name}</h3>

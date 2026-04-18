@@ -117,6 +117,19 @@ async def start(_: TeacherOnlyDep):
             for item_ip, item_user in get_all_users().items()
         },
     )
+
+    for item_ip, item_user in get_all_users().items():
+        await manager.send_to_ip(
+            item_ip,
+            "user_update",
+            SafeUserData(
+                score=item_user.score,
+                kicked=item_user.kicked,
+                name=item_user.name,
+                pc_name=item_user.pc_name,
+            ).model_dump(by_alias=True),
+        )
+
     return result
 
 @router.post("/stop")

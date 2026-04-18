@@ -190,6 +190,13 @@ hr {
     font-size: 1.5em;
 }
 
+.required-score-info {
+    margin: -8px 0 20px;
+    text-align: center;
+    color: var(--accent-strong);
+    font-weight: 600;
+}
+
 /* Game Section */
 .game-section {
     background-color: rgba(23, 34, 28, 0.9);

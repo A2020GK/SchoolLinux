@@ -62,7 +62,23 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
             });
         });
 
-        return () => unsubscribeKicked();
+        const unsubscribeUserUpdate = onSocketEvent("user_update", (userPayload) => {
+            setUser((prevUser) => {
+                if (!prevUser || prevUser.isTeacher || !prevUser.user) {
+                    return prevUser;
+                }
+
+                return {
+                    ...prevUser,
+                    user: userPayload,
+                };
+            });
+        });
+
+        return () => {
+            unsubscribeKicked();
+            unsubscribeUserUpdate();
+        };
     }, [fetchUser]);
 
     const value: UserContextValue = useMemo(() => ({

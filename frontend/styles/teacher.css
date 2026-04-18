@@ -22,6 +22,34 @@
     min-height: 300px;
 }
 
+.required-score-footer {
+    margin: -12px 0 22px;
+    font-weight: 700;
+    color: var(--accent-strong);
+}
+
+.table-actions {
+    display: flex;
+    justify-content: flex-end;
+    margin: 0 0 16px;
+}
+
+.export-btn {
+    padding: 10px 16px;
+    background-color: rgba(93, 165, 123, 0.15);
+    color: var(--accent-strong);
+    border: 1px solid rgba(93, 165, 123, 0.45);
+    border-radius: 10px;
+    cursor: pointer;
+    font-weight: 700;
+    transition: all 0.25s ease;
+}
+
+.export-btn:hover {
+    background-color: rgba(93, 165, 123, 0.24);
+    box-shadow: 0 8px 18px rgba(93, 165, 123, 0.28);
+}
+
 /* React Data Grid Customization */
 .teacher-datagrid {
     --rdg-background-color: rgba(23, 34, 28, 0.82) !important;
