@@ -1,0 +1,80 @@
+name: Build Release Tarball
+
+on:
+  push:
+    tags:
+      - "*"
+
+permissions:
+  contents: read
+
+jobs:
+  build-release-tarball:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Install frontend dependencies
+        run: npm ci
+
+      - name: Build frontend
+        run: npm run build
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements.txt
+
+      - name: Install backend dependencies and run tests
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pytest backend/tests
+
+      - name: Create tar.gz release bundle
+        run: |
+          set -euo pipefail
+
+          VERSION="${GITHUB_REF_NAME}"
+          BUNDLE_ROOT="SchoolLinux-${VERSION}"
+          STAGE_ROOT="release-stage"
+          STAGE_DIR="${STAGE_ROOT}/${BUNDLE_ROOT}"
+
+          rm -rf "${STAGE_ROOT}"
+          mkdir -p "${STAGE_DIR}/frontend" "${STAGE_DIR}/backend"
+
+          rsync -a \
+            --exclude '__pycache__' \
+            --exclude '.pytest_cache' \
+            --exclude '*.pyc' \
+            --exclude '*.pyo' \
+            backend/ "${STAGE_DIR}/backend/"
+          cp -r frontend/dist "${STAGE_DIR}/frontend/dist"
+          cp requirements.txt "${STAGE_DIR}/requirements.txt"
+          cp README.md "${STAGE_DIR}/README.md"
+          cp scripts/release/install.sh "${STAGE_DIR}/install.sh"
+          cp scripts/release/run.sh "${STAGE_DIR}/run.sh"
+          cp .env.example "${STAGE_DIR}/.env"
+
+          chmod +x "${STAGE_DIR}/install.sh" "${STAGE_DIR}/run.sh"
+
+          tar -czf "${BUNDLE_ROOT}.tar.gz" -C "${STAGE_ROOT}" "${BUNDLE_ROOT}"
+
+      - name: Upload tar.gz as workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: SchoolLinux-${{ github.ref_name }}
+          path: SchoolLinux-${{ github.ref_name }}.tar.gz
+          if-no-files-found: error

@@ -173,3 +173,22 @@ class EchoGame(Game):
 - Store only progress data in game_data; use self.settings for configuration.
 - Always clean up created files in uninstall.
 - Keep descriptions explicit so students know success criteria.
+
+## Release Tarball CI
+
+- CI workflow `.github/workflows/release-tarball.yml` runs on every pushed tag.
+- It builds frontend, runs backend tests, and creates `SchoolLinux-<tag>.tar.gz`.
+- The tarball contains:
+	- `backend/`
+	- `frontend/dist/`
+	- `.env` (copied from `.env.example`)
+	- `requirements.txt`
+	- `install.sh`
+	- `run.sh`
+
+After extracting a release tarball:
+
+```bash
+./install.sh
+./run.sh
+```
