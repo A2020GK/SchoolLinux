@@ -167,7 +167,7 @@ pytest backend/tests
 Рекомендуемый импорт:
 
 ```python
-from backend.app.games import Game, GameSettingsItem
+from backend.app.games import Game, GameSettingsItem, execute_command, upload_and_run_script
 ```
 
 ### 3.2 Контракт класса игры
@@ -238,10 +238,34 @@ settings_form = {
 }
 ```
 
-### 3.5 Минимальный рабочий пример
+### 3.5 SSH API для авторов игр
+
+В `backend.app.games` вместе с `Game` и `GameSettingsItem` реэкспортируются SSH-хелперы:
+
+- `execute_command(client, command)`
+    - Выполняет shell-команду на машине ученика.
+    - Возвращает кортеж `(stdout_text, stderr_text)` как строки (`str`).
+    - Удобно использовать в `check` и `uninstall` для коротких команд.
+
+- `upload_and_run_script(client, name, script)`
+    - Загружает скрипт в `/tmp/<name>.sh`, делает его исполняемым и запускает через `bash`.
+    - Возвращает кортеж `(stdout_text, stderr_text)` как строки (`str`).
+    - Если скрипт завершился с ошибкой (ненулевой `exit code`), выбрасывает `RuntimeError`.
+    - Рекомендуемый вариант для `install`, когда нужно выполнить несколько команд подряд.
+
+Пример проверки stderr у `execute_command`:
 
 ```python
-from backend.app.games import Game, GameSettingsItem
+stdout, stderr = execute_command(client, 'cat "$HOME/Game/message.txt"')
+if stderr.strip():
+        return 0
+content = stdout.strip()
+```
+
+### 3.6 Минимальный рабочий пример
+
+```python
+from backend.app.games import Game, GameSettingsItem, execute_command, upload_and_run_script
 
 
 class EchoGame(Game):
@@ -264,26 +288,32 @@ class EchoGame(Game):
     }
 
     def install(self, client, game_data):
-        client.exec_command("mkdir -p $HOME/Game")
-        game_data["checked"] = False
+        script = """#!/bin/bash
+set -e
+mkdir -p "$HOME/Game"
+"""
+        upload_and_run_script(client, "echo_game_install", script)
+        game_data["checked"] = False # Проверяли ли ранее?
 
     def check(self, client, game_data):
         expected = self.settings["expected_text"]
-        _, stdout, _ = client.exec_command("cat $HOME/Game/message.txt 2>/dev/null")
-        content = stdout.read().decode().strip()
+        stdout, stderr = execute_command(client, 'cat "$HOME/Game/message.txt" 2>/dev/null')
+        if stderr.strip():
+            return 0
+        content = stdout.strip()
         if content == expected and not game_data["checked"]:
             game_data["checked"] = True
             return 1
         return 0
 
     def uninstall(self, client, game_data):
-        client.exec_command("rm -rf $HOME/Game")
+        execute_command(client, 'rm -rf "$HOME/Game"')
 
     def check_string_submission(self, submission, game_data):
         return 0
 ```
 
-### 3.6 Как игра подключается в систему
+### 3.7 Как игра подключается в систему
 
 - При старте backend выполняется автообнаружение игр в `backend/app/games/`.
 - Ключ игры соответствует имени файла (без `.py`).
