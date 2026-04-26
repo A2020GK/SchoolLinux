@@ -50,7 +50,7 @@ export const Home = () => {
                             <h3>Фокус продукта</h3>
                             <p>
                                 SchoolLinux не заменяет полноценную LMS. Это узкоспециализированный инструмент
-                                для проведения практических работ по терминалу Linux на уроке информатики, но в будущем планируется добавление встроенного курса по Linux для учителей
+                                для проведения практических работ по терминалу Linux на уроке информатики, в будущем планируется добавление встроенного курса по Linux для учителей
                             </p>
                         </div>
                     </div>
@@ -93,14 +93,14 @@ export const Home = () => {
                     <h2 className="text-center">2 встроенных игровых режима</h2>
                     <div className="grid">
                         <FeatureCard
-                            icon={faMagnifyingGlass}
-                            title="Поиск информации"
-                            description={`Ученики находят «клады» (строки вида "klad:...") в сгенерированной файловой структуре с помощью команд терминала.`}
-                        />
-                        <FeatureCard
                             icon={faFolderTree}
                             title="Создание структуры"
                             description="Ученики создают файловое дерево в соответствии с заданием, пряча там «клады», после чего система автоматически проверяет результат."
+                        />
+                        <FeatureCard
+                            icon={faMagnifyingGlass}
+                            title="Поиск информации"
+                            description={`Ученики находят «клады» (строки вида "klad:...") в сгенерированной файловой структуре с помощью команд терминала.`}
                         />
                     </div>
                   <p className="text-center" style={{ marginTop: '2rem', maxWidth: '600px', margin: '0 auto 2rem' }}>
@@ -113,9 +113,9 @@ export const Home = () => {
                 <div className="container">
                     <h2 className="text-center">Ресурсы проекта</h2>
                     <div className="links-grid">
-                        <a href="https://github.com/A2020GK/SchoolLinux#2-руководство-по-установке" target="_blank" rel="noopener noreferrer" className="link-card card">
-                            <h3><FontAwesomeIcon icon={faMagnifyingGlass} /> Руководство по запуску</h3>
-                            <p>Быстрая инструкция по установке и запуску инструмента в компьютерном классе (GitHub)</p>
+                        <a href="https://drive.google.com/file/d/1tkQASiKwfwEuXz_IRmtbwFtFDJGIcsXB/view?usp=sharing" target="_blank" rel="noopener noreferrer" className="link-card card">
+                            <h3><FontAwesomeIcon icon={faDisplay} /> Презентация</h3>
+                            <p>Презентация проекта, подготовленная для конференции "Инженеры будущего" (Google Drive)</p>
                             <span className="link-arrow">
                                 <FontAwesomeIcon icon={faArrowRight} />
                             </span>
@@ -127,9 +127,16 @@ export const Home = () => {
                                 <FontAwesomeIcon icon={faArrowRight} />
                             </span>
                         </a>
-                        <a href="https://drive.google.com/file/d/1tkQASiKwfwEuXz_IRmtbwFtFDJGIcsXB/view?usp=sharing" target="_blank" rel="noopener noreferrer" className="link-card card">
-                            <h3><FontAwesomeIcon icon={faDisplay} /> Презентация</h3>
-                            <p>Презентация проекта, подготовленная для конференции "Инженеры будущего" (Google Drive)</p>
+                        <a href="https://github.com/A2020GK/SchoolLinux#2-руководство-по-установке" target="_blank" rel="noopener noreferrer" className="link-card card">
+                            <h3><FontAwesomeIcon icon={faMagnifyingGlass} /> Руководство по запуску</h3>
+                            <p>Быстрая инструкция по установке и запуску инструмента в компьютерном классе (GitHub)</p>
+                            <span className="link-arrow">
+                                <FontAwesomeIcon icon={faArrowRight} />
+                            </span>
+                        </a>
+                        <a href="https://forms.yandex.ru/u/69ee1aefe010db68d20ccb82" target="_blank" rel="noopener noreferrer" className="link-card card">
+                            <h3><FontAwesomeIcon icon={faUsers} /> Обратная связь</h3>
+                            <p>Оставить отзыв и предложения по развитию SchoolLinux (Яндекс.Формы)</p>
                             <span className="link-arrow">
                                 <FontAwesomeIcon icon={faArrowRight} />
                             </span>
