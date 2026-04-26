@@ -15,6 +15,9 @@ import { FeatureCard } from '../components/FeatureCard'
 import './Home.css'
 
 export const Home = () => {
+    const presentationPdfUrl = `${import.meta.env.BASE_URL}SchoolLinux 3 - Презентация.pdf`
+    const fullDescriptionPdfUrl = `${import.meta.env.BASE_URL}SchoolLinux 3 - Полное описание.pdf`
+
     return (
         <div className="home" id="top">
             <section className="hero section-spacing">
@@ -113,16 +116,16 @@ export const Home = () => {
                 <div className="container">
                     <h2 className="text-center">Ресурсы проекта</h2>
                     <div className="links-grid">
-                        <a href="https://drive.google.com/file/d/1tkQASiKwfwEuXz_IRmtbwFtFDJGIcsXB/view?usp=sharing" target="_blank" rel="noopener noreferrer" className="link-card card">
+                        <a href={presentationPdfUrl} target="_blank" rel="noopener noreferrer" className="link-card card">
                             <h3><FontAwesomeIcon icon={faDisplay} /> Презентация</h3>
-                            <p>Презентация проекта, подготовленная для конференции "Инженеры будущего" (Google Drive)</p>
+                            <p>Презентация проекта, подготовленная для конференции "Инженеры будущего" (PDF)</p>
                             <span className="link-arrow">
                                 <FontAwesomeIcon icon={faArrowRight} />
                             </span>
                         </a>
-                        <a href="https://docs.google.com/document/d/1qG4EtB_5OPL7i3gDynXxIVqjF_16OSj3mzSWsxPnY2c/edit?usp=sharing" target="_blank" rel="noopener noreferrer" className="link-card card">
+                        <a href={fullDescriptionPdfUrl} target="_blank" rel="noopener noreferrer" className="link-card card">
                             <h3><FontAwesomeIcon icon={faBook} /> Полное описание проекта</h3>
-                            <p>Подробное описание функционала и использования SchoolLinux (Google Docs)</p>
+                            <p>Подробное описание функционала и использования SchoolLinux (PDF)</p>
                             <span className="link-arrow">
                                 <FontAwesomeIcon icon={faArrowRight} />
                             </span>
