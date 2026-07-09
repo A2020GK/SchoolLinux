@@ -351,7 +351,7 @@ mkdir -p "$HOME/Game"
 
 ### 4.4 Frontend
 
-- Было: старый frontend (сейчас сохранен как `frontend.old/`).
+- Было: старый frontend
 - Стало: новый React + TypeScript frontend в `frontend/` с контекстами, типами, API-слоем и разделением Teacher/Student экранов.
 
 - Добавлено: mock preview режим через переменные окружения (`VITE_MOCK_PREVIEW`, `VITE_MOCK_SCREEN`).
