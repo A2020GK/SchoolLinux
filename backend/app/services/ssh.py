@@ -40,7 +40,7 @@ def check_ip(ip: str) -> bool:
     except Exception:
         return False
 
-def upload_and_run_script(client: SSHClient, name: str, script: str):
+def upload_script(client: SSHClient, name: str, script: str) -> str:
     ip = client.get_transport().getpeername()[0]
     logger.info(f"Uploading script {name} to ip {ip}")
     sftp = client.open_sftp()
@@ -48,6 +48,12 @@ def upload_and_run_script(client: SSHClient, name: str, script: str):
     with sftp.file(remote_path, "w") as remote_file:
         remote_file.write(script)
     sftp.chmod(remote_path, 0o755)
+    return remote_path
+
+
+def upload_and_run_script(client: SSHClient, name: str, script: str):
+    ip = client.get_transport().getpeername()[0]
+    remote_path = upload_script(client, name, script)
     _, stdout, stderr = client.exec_command(f"bash {remote_path}")
 
     # Wait for completion before returning. Otherwise caller may close SSH client

@@ -8,6 +8,7 @@ from ..games import Game
 from ..helpers.json_safe_value import _json_safe_value
 from ..schemas.game import GameResponse, GameResponseSafe
 from ..state import state
+from .anticheat import start_anticheat, stop_anticheat
 from .user import get_all_users
 from backend.app.services.ssh import create_client_from_config
 
@@ -144,6 +145,18 @@ def start_game() -> None:
             client = create_client_from_config(ip)
             current_game.install(client, user.game_data)
 
+            if current_game.anticheat_required:
+                try:
+                    start_anticheat(client)
+                except Exception as exc:
+                    logger.error(
+                        "Failed to start anticheat for user %s (%s): %s",
+                        user.name,
+                        ip,
+                        exc,
+                        exc_info=True,
+                    )
+
         except Exception as exc:
             logger.error("Failed to install game for user %s (%s): %s", user.name, ip, exc, exc_info=True)
         finally:
@@ -168,6 +181,16 @@ def stop_game() -> None:
             logger.error("Failed to uninstall game for user %s (%s): %s", user.name, ip, exc, exc_info=True)
         finally:
             if client is not None:
+                try:
+                    stop_anticheat(client)
+                except Exception as exc:
+                    logger.error(
+                        "Failed to stop anticheat for user %s (%s): %s",
+                        user.name,
+                        ip,
+                        exc,
+                        exc_info=True,
+                    )
                 _close_client_safely(client, ip)
     state.save()
     

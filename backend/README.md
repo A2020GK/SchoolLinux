@@ -148,7 +148,7 @@ All schemas inherit `BaseSchema`:
   - `check(client, game_data)` (SSH-mode games)
   - `uninstall(client, game_data)`
 
-`backend.app.games` re-exports SSH helper functions (`execute_command`, `upload_and_run_script`) via wildcard import from `services.ssh`.
+`backend.app.games` re-exports SSH helper functions (`execute_command`, `upload_script`, `upload_and_run_script`) via wildcard import from `services.ssh`.
 
 ### Dynamic discovery (`backend/app/services/game.py`)
 - Scans `backend/app/games/*.py` excluding `_*.py`
@@ -169,9 +169,17 @@ All schemas inherit `BaseSchema`:
   - requires selected game
   - for each user: resets `user.game_data` with `new_game_data()`
   - opens SSH client, runs `game.install`, always closes client safely
+  - if `game.anticheat_required` is true, uploads and starts the background anticheat loop
   - errors per-user are logged and do not stop whole loop
 - `stop_game()`:
   - for each user runs `game.uninstall` over SSH
+  - always stops the anticheat in a `finally` block, even if uninstall fails
+
+### Anticheat (`backend/app/services/anticheat.py`)
+- Uploads `/tmp/schoollinux_anticheat.sh` and launches it detached with `nohup`
+- The script writes its PID to `/tmp/schoollinux_anticheat.pid`
+- Continuously scans `/proc` and `SIGKILL`s configured GUI file managers and their descendants
+- On game stop the PID from the remote file is validated against `/proc/<pid>/cmdline`, killed, and the remote files are removed
 - `check(ip, submission)`:
   - unknown user => returns `0`
   - no current game => returns existing user score

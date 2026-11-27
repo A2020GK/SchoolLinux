@@ -6,7 +6,7 @@ from unittest.mock import MagicMock, patch
 import paramiko
 import pytest
 
-from backend.app.services.ssh import check_ip, upload_and_run_script
+from backend.app.services.ssh import check_ip, upload_and_run_script, upload_script
 
 
 def test_check_ip_returns_true_on_success():
@@ -30,6 +30,24 @@ def test_check_ip_returns_false_on_socket_error():
         result = check_ip("192.168.1.3")
 
     assert result is False
+
+
+def test_upload_script_writes_file_without_executing_it():
+    client = MagicMock()
+    client.get_transport.return_value.getpeername.return_value = ("10.0.0.12", 22)
+
+    sftp = MagicMock()
+    client.open_sftp.return_value = sftp
+    remote_file = MagicMock()
+    sftp.file.return_value.__enter__.return_value = remote_file
+
+    remote_path = upload_script(client, "background", "#!/bin/bash\nsleep 10\n")
+
+    assert remote_path == "/tmp/background.sh"
+    sftp.file.assert_called_once_with("/tmp/background.sh", "w")
+    remote_file.write.assert_called_once_with("#!/bin/bash\nsleep 10\n")
+    sftp.chmod.assert_called_once_with("/tmp/background.sh", 0o755)
+    client.exec_command.assert_not_called()
 
 
 def test_upload_and_run_script_waits_for_completion_and_returns_texts():
