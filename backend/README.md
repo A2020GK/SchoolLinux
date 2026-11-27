@@ -176,10 +176,12 @@ All schemas inherit `BaseSchema`:
   - always stops the anticheat in a `finally` block, even if uninstall fails
 
 ### Anticheat (`backend/app/services/anticheat.py`)
-- Uploads `/tmp/schoollinux_anticheat.sh` and launches it detached with `nohup`
+- Uploads `/tmp/schoollinux_anticheat.sh`
+- Starts it as a transient user systemd service (`schoollinux-anticheat.service`) so it survives the SSH session closing
+- Uses `at`/`setsid nohup` only as fallbacks when a user systemd manager is unavailable
 - The script writes its PID to `/tmp/schoollinux_anticheat.pid`
 - Continuously scans `/proc` and `SIGKILL`s configured GUI file managers and their descendants
-- On game stop the PID from the remote file is validated against `/proc/<pid>/cmdline`, killed, and the remote files are removed
+- On game stop the systemd unit is stopped, the PID from the remote file is validated against `/proc/<pid>/cmdline`, and the remote files are removed
 - `check(ip, submission)`:
   - unknown user => returns `0`
   - no current game => returns existing user score

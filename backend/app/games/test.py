@@ -5,7 +5,7 @@ class TestGame(Game):
     description:str = "Игра для тестирования механики и отладки. Ничего не делает."
     
     string_submission: bool = False
-    anticheat_required: bool = False
+    anticheat_required: bool = True
     required_user_score: int = 0
     
     settings_form: dict[str, GameSettingsItem] = {

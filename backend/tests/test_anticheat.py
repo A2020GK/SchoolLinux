@@ -63,8 +63,12 @@ def test_start_anticheat_stops_old_instance_uploads_and_launches(monkeypatch):
     assert pid == 4321
     assert calls["stopped"] is client
     assert calls["upload"] == (anticheat.SCRIPT_NAME, anticheat.ANTICHEAT_SCRIPT)
-    assert f"nohup bash {anticheat.SCRIPT_PATH}" in calls["command"]
-    assert f">{anticheat.LOG_FILE}" in calls["command"]
+    command = calls["command"]
+    assert f'script="{anticheat.SCRIPT_PATH}"' in command
+    assert 'systemd-run --user --unit="$unit"' in command
+    assert "--property=Restart=on-failure" in command
+    assert 'cat "$pid_file"' in command
+    assert 'setsid nohup /bin/bash "$script"' in command
 
 
 def test_stop_anticheat_reads_pid_file_validates_process_and_removes_files(monkeypatch):
@@ -81,6 +85,9 @@ def test_stop_anticheat_reads_pid_file_validates_process_and_removes_files(monke
     command = calls["command"]
     assert anticheat.PID_FILE in command
     assert anticheat.SCRIPT_PATH in command
+    assert f'unit="{anticheat.SYSTEMD_UNIT}"' in command
+    assert 'systemctl --user stop "$unit.service"' in command
+    assert 'systemctl --user reset-failed "$unit.service"' in command
     assert '"/proc/$pid/cmdline"' in command
     assert "kill -9" in command
     assert 'rm -f "$pid_file" "$script_path"' in command

@@ -11,6 +11,7 @@ SCRIPT_NAME = "schoollinux_anticheat"
 SCRIPT_PATH = f"/tmp/{SCRIPT_NAME}.sh"
 PID_FILE = f"/tmp/{SCRIPT_NAME}.pid"
 LOG_FILE = f"/tmp/{SCRIPT_NAME}.log"
+SYSTEMD_UNIT = "schoollinux-anticheat"
 
 # GUI file managers that can be used to browse the student's files during a game.
 # Matching is done against both /proc/<pid>/comm and the basename of /proc/<pid>/exe.
@@ -36,6 +37,48 @@ FILE_MANAGERS = (
 )
 
 _TARGETS_BLOCK = "\n".join(f"  {name}" for name in FILE_MANAGERS)
+
+ANTICHEAT_START_COMMAND = f"""
+unit="{SYSTEMD_UNIT}"
+script="{SCRIPT_PATH}"
+pid_file="{PID_FILE}"
+log_file="{LOG_FILE}"
+started=0
+
+# A plain background process is killed when the SSH session scope ends.
+# Run as a transient user service so it survives the SSH connection.
+if command -v systemd-run >/dev/null 2>&1 && systemctl --user show-environment >/dev/null 2>&1; then
+    if systemd-run --user --unit="$unit" --collect \
+        --property=Type=simple \
+        --property=Restart=on-failure \
+        --property=RestartSec=1 \
+        /bin/bash "$script" >/dev/null; then
+        started=1
+    fi
+fi
+
+# Fallback for systems without a user systemd manager.
+if [ "$started" -eq 0 ] && command -v at >/dev/null 2>&1 && systemctl is-active --quiet atd >/dev/null 2>&1; then
+    if echo "/bin/bash $script >$log_file 2>&1" | at now >/dev/null 2>&1; then
+        started=1
+    fi
+fi
+
+# Last-resort fallback. It may not survive the SSH session on all systems.
+if [ "$started" -eq 0 ]; then
+    if command -v setsid >/dev/null 2>&1; then
+        setsid nohup /bin/bash "$script" >"$log_file" 2>&1 < /dev/null &
+    else
+        nohup /bin/bash "$script" >"$log_file" 2>&1 < /dev/null &
+    fi
+fi
+
+for _ in 1 2 3 4 5 6 7 8 9 10; do
+    [ -s "$pid_file" ] && break
+    sleep 0.1
+done
+cat "$pid_file" 2>/dev/null || true
+"""
 
 ANTICHEAT_SCRIPT = f"""#!/bin/bash
 set -u
@@ -120,11 +163,9 @@ def start_anticheat(client: SSHClient) -> int | None:
     stop_anticheat(client)
 
     upload_script(client, SCRIPT_NAME, ANTICHEAT_SCRIPT)
-    command = (
-        f"nohup bash {SCRIPT_PATH} >{LOG_FILE} 2>&1 < /dev/null & "
-        f"echo $!"
+    stdout, stderr = execute_command(
+        client, f"bash -c {shlex.quote(ANTICHEAT_START_COMMAND)}"
     )
-    stdout, stderr = execute_command(client, f"bash -c {shlex.quote(command)}")
 
     raw_pid = stdout.strip().splitlines()
     pid = None
@@ -146,8 +187,15 @@ def start_anticheat(client: SSHClient) -> int | None:
 def stop_anticheat(client: SSHClient) -> None:
     """Stop the anticheat process and remove its remote files."""
     command = f"""
+unit="{SYSTEMD_UNIT}"
 pid_file="{PID_FILE}"
 script_path="{SCRIPT_PATH}"
+
+if command -v systemctl >/dev/null 2>&1; then
+    systemctl --user stop "$unit.service" >/dev/null 2>&1 || true
+    systemctl --user reset-failed "$unit.service" >/dev/null 2>&1 || true
+fi
+
 pid=""
 if [ -f "$pid_file" ]; then
     pid="$(head -n 1 "$pid_file" 2>/dev/null || true)"

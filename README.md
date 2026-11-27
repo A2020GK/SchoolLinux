@@ -201,7 +201,7 @@ def check_string_submission(self, submission, game_data):
 - `description` - описание задания для ученика.
 - `settings_form` - настройки, редактируемые преподавателем.
 - `string_submission` - режим проверки строкового ответа.
-- `anticheat_required` - включает античит. При запуске игры backend загружает на машину ученика скрипт, который в фоне завершает GUI-файловые менеджеры (Nautilus, Nemo, Thunar, Dolphin, PCManFM, Caja, Krusader и другие), а также их дочерние процессы. PID античита хранится в `/tmp/schoollinux_anticheat.pid` и используется для остановки при завершении игры.
+- `anticheat_required` - включает античит. При запуске игры backend загружает на машину ученика скрипт, который в фоне завершает GUI-файловые менеджеры (Nautilus, Nemo, Thunar, Dolphin, PCManFM, Caja, Krusader и другие), а также их дочерние процессы. Античит запускается как временный пользовательский systemd-сервис (`schoollinux-anticheat.service`), поэтому продолжает работать после закрытия SSH-сессии. PID античита хранится в `/tmp/schoollinux_anticheat.pid`; при завершении игры сервис останавливается, а файлы удаляются.
 - `required_user_score` - целевой балл
 - `default_game_data` - шаблон данных игры на ученика на раунд.
 
